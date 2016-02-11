@@ -70,7 +70,7 @@ def setup():
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned, soundStart, tcs
-    if rospy.get_time()-scan.header.stamp.secs<0.35 & soundStart:
+    if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
         distances = scan.ranges
 
         d = []
@@ -92,22 +92,26 @@ def scanHandler(scan):
         # Distance from right wall, 1000 = inf right now
         if (distances[0] != 1000):
             newDist = distances[0]
-        r,g,b = tcs.get_raw_data()
+        r,g,b,c = tcs.get_raw_data()
         # For the room detection
-        if(r+g+b>300):
+        if(False):#r+g+b>300
             #fireSweep()
             print("fire sweep")
             moveForward(0.15)
+            rospy.sleep(0.2)
             turnRightDegrees(360)
+            rospy.sleep(0.2)
             turnLeftDegrees(180)
+            rospy.sleep(0.2)
             moveForward(0.38)
+            rospy.sleep(0.2)
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
             if (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
-                moveForwardDistance(0.15)
+                moveForwardDistance(0.1)
                 rospy.sleep(1)
                 turnRightDegrees(90)
                 rospy.sleep(1)
@@ -115,11 +119,10 @@ def scanHandler(scan):
                 # Distance will have to be determined through testing
                 moveForwardDistance(0.3)
                 rospy.sleep(1)
-                justTurned=True;
-
-
-            elif distances[270]<0.13:
+                justTurned=True
+            elif distances[90]<0.21:
                 turnLeftDegrees(90)
+                rospy.sleep(0.4)
             else:
               #  if(abs(distances[]-distances[180])>0.1):
                    # alignToWall(0)
@@ -132,7 +135,7 @@ def scanHandler(scan):
                 detectOpening.pop(0)
 
         # This aligns regularly
-        print(detectOpening, newDist)
+        print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
