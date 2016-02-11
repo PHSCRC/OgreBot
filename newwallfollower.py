@@ -12,11 +12,13 @@ def newwallfollower():
     global turning
     Running = True
     tolerance = 0.7
-    newDist = [distances[0], distances[0], distances[0]]
+    # newDist starts as [0, 0, 0]
+    newDist = [0, 0, 0]
     while Running:
         # Distance from right wall
-        newDist.append(distances[0])
-        newDist.remove(newDist[0])
+        if (not math.isinf(distances[0])):
+            newDist.append(distances[0])
+            newDist.remove(newDist[0])
         print('newdist', newDist)
         # This determines if there is an opening to the right
         if ((sum(newDist)/3) > tolerance):
@@ -50,7 +52,7 @@ def scanHandler(scan):
     global angle_increment
     global turning
     distances = scan.ranges
-    inf = -1 
+    inf = -1
     d = []
     for dist in range(len(distances)) :
         #print(distances[dist])
