@@ -11,7 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
   std_msgs
+  message_generation
 )
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -67,10 +69,11 @@ add_message_files(
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   geometry_msgs#   std_msgs
-# )
+ generate_messages(
+   DEPENDENCIES
+   geometry_msgs
+   std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -101,12 +104,12 @@ add_message_files(
 ## LIBRARIES: libraries you create in this project that dependent projects also need
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
-catkin_package(
-#  INCLUDE_DIRS include
-#  LIBRARIES ogrebot
-#  CATKIN_DEPENDS geometry_msgs rospy std_msgs
-#  DEPENDS system_lib
-)
+##catkin_package(
+##  INCLUDE_DIRS include
+##  LIBRARIES ogrebot
+##  CATKIN_DEPENDS geometry_msgs rospy std_msgs
+##  DEPENDS system_lib
+##)
 
 ###########
 ## Build ##

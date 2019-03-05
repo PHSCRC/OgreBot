@@ -15,30 +15,32 @@ ENCODER_COUNTS_PER_ROTATION = 4096
 
 POLL_TIME=0.01
 def callback(cmd_vel):
+    global my_drive, vels
     print("linearx", cmd_vel.linear.x)
     print("angularz", cmd_vel.angular.z)
     leftWheelSpeed = cmd_vel.linear.x - (ROBOT_RADIUS*cmd_vel.angular.z) #Get linear speed of each wheel in m/s
     rightWheelSpeed = cmd_vel.linear.x + (ROBOT_RADIUS*cmd_vel.angular.z)#Get linear speed of each wheel
     leftMotorSpeed = (2*math.pi*WHEEL_RADIUS*leftWheelSpeed)#Get rotational speed of each wheel in rotations per second
     rightMotorSpeed = (2*math.pi*WHEEL_RADIUS*rightWheelSpeed)#Get rotational speed of each wheel
-
-    my_drive.axis0.controller.vel_ramp_target = leftMotorSpeed*ENCODER_COUNTS_PER_ROTATION
-    my_drive.axis1.controller.vel_ramp_target = rightMotorSpeed*ENCODER_COUNTS_PER_ROTATION
+    print(leftMotorSpeed)
+    print(rightMotorSpeed)
+    my_drive.axis0.controller.vel_setpoint = -leftMotorSpeed*ENCODER_COUNTS_PER_ROTATION
+    my_drive.axis1.controller.vel_setpoint = rightMotorSpeed*ENCODER_COUNTS_PER_ROTATION
 
 
 def poll(event):
+    global my_drive, vels
     leftReading = my_drive.axis0.encoder.vel_estimate/ENCODER_COUNTS_PER_ROTATION
-    rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_ROTATIONp
-    leftVel.publish(leftReading)
-    rightVel.publish(rightReading)
+    rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_ROTATION
     msg = robot_vels()
-    msg.left_vel = leftVel
-    msg.right_vel = rightVel
+    msg.left_vel = leftReading
+    msg.right_vel = rightReading
     msg.POLL_TIME = .01
     msg.ROBOT_RADIUS = ROBOT_RADIUS
     vels.publish(msg)
 
 def listener():
+    global my_drive, vels
     print("looking for odrive")
     my_drive = odrive.find_any()
     my_drive.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE

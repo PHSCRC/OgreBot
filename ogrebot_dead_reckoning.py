@@ -63,10 +63,10 @@ def deadReckonCallback(motor_vels):
 if __name__ == "__main__":
     rospy.init_node("odometry_publisher")
 
-    odom_pub=rospy.Publisher("odom", Odometry, queue_size=50)
+    odom_pub=rospy.Publisher("/odom", Odometry, queue_size=50)
     odom_broadcaster= tf.TransformBroadcaster()
 
-    rospy.Subscriber("/wheel_vels", robot_vels, callback)
+    rospy.Subscriber("/wheel_vels", robot_vels, deadReckonCallback)
 
     x=0.0
     y=0.0
