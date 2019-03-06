@@ -84,13 +84,30 @@ def scanHandler(scan):
     print('hi')
     distances = scan.ranges
     angle_increment = scan.angle_increment
- 
-# Moves forward m meters at .20
+
+# Moves forward m meters at .20 meters per second
 def moveForwardDistance(distance):
     time = distance / 0.2
     moveForward(0.2)
     #
     rospy.sleep(time)
+    moveForward(0)
+
+# Turns left at pi/2 radians (90 degrees) per second
+def turnLeftDegrees(degrees):
+    time = degrees / (math.pi * 0.5)
+    turnLeft(math.pi / 2)
+    #
+    rospy.sleep(time)
+    turnLeft(0)
+
+# Turns right at pi/2 radians (90 degrees) per second
+def turnRightDegrees(degrees):
+    time = degrees / (math.pi * 0.5)
+    turnRight(math.pi / 2)
+    #
+    rospy.sleep(time)
+    turnRight(0)
 
 #SPEED IS IN M/S
 def moveForward(speed):
