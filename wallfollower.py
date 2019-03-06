@@ -10,6 +10,7 @@ from sensor_msgs.msg import LaserScan
 
 
 def wallfollower():
+    global distances
     Running = True;
 
     sinceLastAlign = 0
@@ -52,6 +53,8 @@ will only work for the beginning.
     -Stephane
 '''
 def alignToWall():
+    global distances
+    global angle_increment
     minDist = distances[0]
     minDistAngle = 0
     for i in range(int(len(distances) / 4)):
@@ -64,17 +67,24 @@ def alignToWall():
         turnRight(minDistAngle - 90)
 
 def setup():
+    global distances
+    global angle_increment
+    global vel
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler)
-    vels = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    time.sleep(1)
     wallfollower()
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
+    global distances
+    global angle_increment
+    print('hi')
     distances = scan.ranges
     angle_increment = scan.angle_increment
-
+ 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
     time = distance / 0.2
@@ -84,24 +94,28 @@ def moveForwardDistance(distance):
 
 #SPEED IS IN M/S
 def moveForward(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(speed, 0, 0)
     msg.angular = Vector3(0, 0, 0)
     vel.publish(msg)
 
 def moveBackward(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(-speed, 0, 0)
     msg.angular = Vector3(0, 0, 0)
     vel.publish(msg)
 
 def turnLeft(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(0, 0, 0)
     msg.angular = Vector3(0, 0, -speed)
     vel.publish(msg)
 
 def turnRight(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(0, 0, 0)
     msg.angular = Vector3(0, 0, speed)
@@ -109,7 +123,8 @@ def turnRight(speed):
 
 
 if __name__ == '__main__':
+    print('change is working')
     angle_increment = None
-    vels = None
-    distances = None
+    vel = None
+    distances = []
     setup()
