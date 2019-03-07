@@ -9,25 +9,25 @@ from sensor_msgs.msg import LaserScan
 
 def newwallfollower():
     global distances
+    global turning
     Running = True
     tolerance = 0.7
+
 
     while Running:
         # Distance from right wall
         newDist = distances[0]
 
         # This determines if there is an opening to the right
-        if (newDist > tolerance) :
+        if (newDist > tolerance):
+            turning = True
             print("Detected opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.05)
-            turnRight90()
             print("Moving into opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.05)
-
-        # This moves forward regularly
-        moveForwardDistance(0.1)
+            turning = False
 
 def turnRight90():
     # lincoln make this work
@@ -37,14 +37,7 @@ def setup():
     global vels
     rospy.init_node('wallfollower', anonymous=False)
     vels = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
-    time.sleep(10)
-    drive(.2, 0)
-    time.sleep(10)
-    drive(-.2, 0)
-    time.sleep(10)
-    drive(.2, 1)
-    time.sleep(10)
-    drive(.2, -1)
+    newwallfollower()
     rospy.Subscriber("/scan", LaserScan, scanHandler)
     rospy.spin()
 
@@ -53,6 +46,7 @@ def scanHandler(scan):
     global angleadjust
     global distances
     global angle_increment
+    global turning
     distances = scan.ranges
     inf = 1000
     d = []
@@ -62,13 +56,15 @@ def scanHandler(scan):
             d.append(distances)
         else :
             d.append(1000)
+
     print(len(distances))
     print(distances[0])
     print(distances[180])
-    if (distances[0]>distances[180]):
-        angleadjust = .3
-    elif (distances[180]>distances[0]):
-        angleadjust = -.3
+    if not (turning) :
+        if (distances[0]>distances[180]):
+            angleadjust = .3
+        elif (distances[180]>distances[0]):
+            angleadjust = -.3
 
     drive(.2, angleadjust)
 
@@ -114,4 +110,5 @@ if __name__ == '__main__':
     angle_increment = None
     vels = None
     distances = None
+    turning = False
     setup()
