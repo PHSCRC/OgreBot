@@ -16,9 +16,19 @@ def setup():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
+    global distances
+    global angle_increment
     distances = scan.ranges
-    angle_increment = scan.angle_increment
-    
+    inf = 1000
+    d = []
+    for dist in range(len(distances)) :
+        #print(distances[dist])
+        if (type(distances[dist]) is int) :
+            d.append(distances)
+        else :
+            d.append(1000)
+    print(distances[0])
+
 
 #SPEED IS IN M/S
 def drive(linspeed, angspeed):
