@@ -7,12 +7,13 @@ import rospy
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
 
+# distances[0] is actually 90 degrees
 def wallfollower():
     global distances
     Running = True;
 
     sinceLastAlign = 0
-    alignToWall()
+    # alignToWall()
 
     tolerance = 10
     tSize = 5
@@ -20,7 +21,7 @@ def wallfollower():
 
     while Running:
         # Distance from right wall
-        newDist = distances[int(90 / (angle_increment * 180 / math.pi))]
+        newDist = distances[0]
 
         # This determines if there is an opening to the right
         if (newDist > sorted(detectOpening)[int(len(detectOpening) / 2)] + tolerance) :
@@ -41,7 +42,7 @@ def wallfollower():
 
         # This aligns regularly
         moveForwardDistance(1)
-        alignToWall()
+        # alignToWall()
 
 
 
@@ -64,6 +65,7 @@ def alignToWall():
     else:
         turnRightDegrees(minDistAngle - 90)
 
+def alighnToWall
 
 def setup():
     global distances
@@ -105,12 +107,10 @@ def scanHandler(scan):
 
     distances = d
     angle_increment = scan.angle_increment
-<<<<<<< HEAD
-=======
+
     #print(distances)
 
 # Moves forward m meters at .20
->>>>>>> c770e28a0f79dcaf69d517088194d55f3bf31e05
 def moveForwardDistance(distance):
     time = distance / 0.2
     moveForward(0.2)
@@ -118,8 +118,6 @@ def moveForwardDistance(distance):
     rospy.sleep(time)
     moveForward(0)
 
-<<<<<<< HEAD
-=======
 # Turns left at 1 radians (? degrees) per second
 def turnLeftDegrees(degrees):
     radians = degrees * (math.pi / (180))
@@ -137,7 +135,6 @@ def turnRightDegrees(degrees):
     turnRight(1)
     #
     rospy.sleep(radians)
->>>>>>> c770e28a0f79dcaf69d517088194d55f3bf31e05
     turnRight(0)
 
 #SPEED IS IN M/S
