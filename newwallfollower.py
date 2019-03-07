@@ -10,8 +10,16 @@ from sensor_msgs.msg import LaserScan
 
 def setup():
     rospy.init_node('wallfollower', anonymous=False)
-    rospy.Subscriber("/scan", LaserScan, scanHandler)
     vels = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    time.sleep(1)
+    drive(.2, 0)
+    time.sleep(1)
+    drive(-.2, 0)
+    time.sleep(1)
+    drive(.2, 1)
+    time.sleep(1)
+    drive(.2, -1)    
+    rospy.Subscriber("/scan", LaserScan, scanHandler)
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
