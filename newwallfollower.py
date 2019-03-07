@@ -9,13 +9,23 @@ from sensor_msgs.msg import LaserScan
 
 
 def setup():
+    global vels
     rospy.init_node('wallfollower', anonymous=False)
-    rospy.Subscriber("/scan", LaserScan, scanHandler)
     vels = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    time.sleep(10)
+    drive(.2, 0)
+    time.sleep(10)
+    drive(-.2, 0)
+    time.sleep(10)
+    drive(.2, 1)
+    time.sleep(10)
+    drive(.2, -1)    
+    rospy.Subscriber("/scan", LaserScan, scanHandler)
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
+    global angleadjust
     global distances
     global angle_increment
     distances = scan.ranges
@@ -27,33 +37,45 @@ def scanHandler(scan):
             d.append(distances)
         else :
             d.append(1000)
+    print(len(distances))
     print(distances[0])
+    print(distances[180])
+    if (distances[0]>distances[180]):
+        angleadjust = 1
+    elif (distances[180]>distances[0]):
+        angleadjust = -1
+
+    drive(.2, angleadjust)
 
 
 #SPEED IS IN M/S
 def drive(linspeed, angspeed):
+    global vels
     msg = Twist()
     msg.linear = Vector3(linspeed, 0, 0)
     msg.angular = Vector3(0, 0, angspeed)
-    vel.publish(msg)
+    vels.publish(msg)
 
 def moveForward(speed):
+    global vels
     msg = Twist()
     msg.linear = Vector3(speed, 0, 0)
     msg.angular = Vector3(0, 0, 0)
-    vel.publish(msg)
+    vels.publish(msg)
 
 def moveBackward(speed):
+    global vels
     msg = Twist()
     msg.linear = Vector3(-speed, 0, 0)
     msg.angular = Vector3(0, 0, 0)
-    vel.publish(msg)
+    vels.publish(msg)
 
 def turnLeft(speed):
+    global vels
     msg = Twist()
     msg.linear = Vector3(0, 0, 0)
     msg.angular = Vector3(0, 0, -speed)
-    vel.publish(msg)
+    vels.publish(msg)
 
 def turnRight(speed):
     msg = Twist()
@@ -63,6 +85,8 @@ def turnRight(speed):
 
 
 if __name__ == '__main__':
+    global vels
+    angleadjust = 0;
     angle_increment = None
     vels = None
     distances = None
