@@ -9,18 +9,15 @@ from sensor_msgs.msg import LaserScan
 
 def newwallfollower():
     global distances
-    Running = True;
-
-    tolerance = 10
-    tSize = 5
-    detectOpening = [distances[0], distances[0], distances[0]]
+    Running = True
+    tolerance = 0.7
 
     while Running:
         # Distance from right wall
         newDist = distances[0]
 
         # This determines if there is an opening to the right
-        if (newDist > sorted(detectOpening)[int(len(detectOpening) / 2)] + tolerance) :
+        if (newDist > tolerance) :
             print("Detected opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.05)
@@ -28,16 +25,9 @@ def newwallfollower():
             print("Moving into opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.05)
-            detectOpening = [distances[0]]
-        else :
-            detectOpening.append(newDist)
 
-        # To keep it from overflowing memory
-        if (len(detectOpening) > tSize) :
-            detectOpening.pop(0)
-
-        # This aligns regularly
-        moveForwardDistance(1)
+        # This moves forward regularly
+        moveForwardDistance(0.1)
 
 def turnRight90():
     # lincoln make this work
