@@ -41,9 +41,9 @@ def scanHandler(scan):
     print(distances[0])
     print(distances[180])
     if (distances[0]>distances[180]):
-        angleadjust += 1
+        angleadjust = 1
     elif (distances[180]>distances[0]):
-        angleadjust -= 1
+        angleadjust = -1
 
     drive(.2, angleadjust)
 
