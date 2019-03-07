@@ -16,6 +16,7 @@ def setup():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
+    global angleadjust
     global distances
     global angle_increment
     distances = scan.ranges
@@ -27,7 +28,15 @@ def scanHandler(scan):
             d.append(distances)
         else :
             d.append(1000)
+    print(len(distances))
     print(distances[0])
+    print(distnace[180])
+    if (distances[0]>distances[180]):
+        angleadjust += 1
+    elif (distances[180]>distances[0]):
+        angleadjust -= 1
+
+    drive(.2, angleadjust)
 
 
 #SPEED IS IN M/S
@@ -63,6 +72,7 @@ def turnRight(speed):
 
 
 if __name__ == '__main__':
+    angleadjust = 0;
     angle_increment = None
     vels = None
     distances = None
