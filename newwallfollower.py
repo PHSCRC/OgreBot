@@ -66,9 +66,9 @@ def scanHandler(scan):
     print(distances[0])
     print(distances[180])
     if (distances[0]>distances[180]):
-        angleadjust = 1
+        angleadjust = .3
     elif (distances[180]>distances[0]):
-        angleadjust = -1
+        angleadjust = -.3
 
     drive(.2, angleadjust)
 
@@ -110,7 +110,6 @@ def turnRight(speed):
 
 
 if __name__ == '__main__':
-    global vels
     angleadjust = 0;
     angle_increment = None
     vels = None
