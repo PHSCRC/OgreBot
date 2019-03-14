@@ -37,14 +37,35 @@ def turnRight90():
     pass
 
 def newAlignToWall():
-    mindist = distances[0]
-    while (distances[0] <= mindist):
-        mindist = distances[0]
-        turnRight(0.2)
+    newDist = [distances[0],distances[0],distances[0]]
+    avgDist = sum(newDist)/3
+    minDist = sum(newDist)/3
+    turnRight(0.5)
+    # tolerance = 0.005
+    tolerance = 0
+    while (True):
+        if (not math.isinf(distances[0])):
+            newDist.append(distances[0])
+            newDist.remove(newDist[0])
+            avgDist = sum(newDist)/3
+        print(minDist, ", ", distances[0],", ", avgDist)
+        minDist = avgDist
+        if (avgDist > minDist + tolerance):
+            break
     turnRight(0)
-    while (distances[0] <= mindist):
-        turnLeft(0.2)
+    avgDist = [distances[0],distances[0],distances[0]]
+    turnLeft(0.5)
+    while (distances[0] <= minDist):
+        if (not math.isinf(distances[0])):
+            newDist.append(distances[0])
+            newDist.remove(newDist[0])
+            avgDist = sum(newDist)/3
+        print(minDist, ", ", distances[0],", ", avgDist)
+        minDist = avgDist
+        if (avgDist > minDist + tolerance):
+            break
     turnLeft(0)
+    print("Aligned to wall")
 
 def setup():
     global vels
@@ -52,7 +73,9 @@ def setup():
     vels = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     rospy.Subscriber("/scan", LaserScan, scanHandler)
     time.sleep(1)
-    newwallfollower()
+    # turnRight(0)
+    newAlignToWall()
+    # newwallfollower()
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
@@ -76,7 +99,7 @@ def scanHandler(scan):
 
     distances = d
     #print(distances)
-   # print(distances[0])
+    #print('distance 0', distances[0])
    # print(distances[180])
     if not (turning) :
         if (distances[0]>distances[180]):
@@ -84,7 +107,7 @@ def scanHandler(scan):
         elif (distances[180]>distances[0]):
             angleadjust = -.4
 
-    drive(.2, angleadjust)
+   # drive(.2, angleadjust)
 
 
 #SPEED IS IN M/S
@@ -125,10 +148,11 @@ def turnLeft(speed):
     vels.publish(msg)
 
 def turnRight(speed):
+    global vels
     msg = Twist()
     msg.linear = Vector3(0, 0, 0)
     msg.angular = Vector3(0, 0, speed)
-    vel.publish(msg)
+    vels.publish(msg)
 
 
 if __name__ == '__main__':
