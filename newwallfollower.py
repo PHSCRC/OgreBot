@@ -36,6 +36,16 @@ def turnRight90():
     # lincoln make this work
     pass
 
+def newAlignToWall():
+    mindist = distances[0]
+    while (distances[0] <= mindist):
+        mindist = distances[0]
+        turnRight(0.2)
+    turnRight(0)
+    while (distances[0] <= mindist):
+        turnLeft(0.2)
+    turnLeft(0)
+
 def setup():
     global vels
     rospy.init_node('wallfollower', anonymous=True)
