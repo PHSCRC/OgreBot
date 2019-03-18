@@ -11,17 +11,17 @@ from ogrebot.msg import robot_vels
 
 ROBOT_RADIUS = .1 #in meteres
 WHEEL_RADIUS = .08 # in meters
-ENCODER_COUNTS_PER_ROTATION = 12*4096
+ENCODER_COUNTS_PER_RADIAN = (4096 * 4)/(2*math.pi)
 
 POLL_TIME=0.01
 def callback(cmd_vel):
     global my_drive, vels
     print("linearx", cmd_vel.linear.x)
     print("angularz", cmd_vel.angular.z)
-    leftWheelSpeed = cmd_vel.linear.x - (ROBOT_RADIUS*cmd_vel.angular.z) #Get linear speed of each wheel in m/s
-    rightWheelSpeed = cmd_vel.linear.x + (ROBOT_RADIUS*cmd_vel.angular.z)#Get linear speed of each wheel
-    leftMotorSpeed = (2*math.pi*WHEEL_RADIUS*leftWheelSpeed)#Get rotational speed of each wheel in rotations per second
-    rightMotorSpeed = (2*math.pi*WHEEL_RADIUS*rightWheelSpeed)#Get rotational speed of each wheel
+    linear = cmd_vel.linear.x * ENCODER_COUNTS_PER_RADIAN * WHEEL_RADIUS
+    angular = cmd_vel.angular.z * (WHEEL_RADIUS/ROBOT_RADIUS) * ENCODER_COUNTS_PER_RADIAN
+    leftWheelSpeed = linear - angular #Get linear speed of each wheel in m/s
+    rightWheelSpeed = linear + angular#Get linear speed of each wheel
     print(leftMotorSpeed)
     print(rightMotorSpeed)
     my_drive.axis0.controller.vel_setpoint = -leftMotorSpeed*ENCODER_COUNTS_PER_ROTATION
