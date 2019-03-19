@@ -11,7 +11,7 @@ from ogrebot.msg import robot_vels
 
 ROBOT_RADIUS = .1 #in meteres
 WHEEL_RADIUS = .08 # in meters
-ENCODER_COUNTS_PER_RADIAN = (4096 * 4)/(2*math.pi)
+ENCODER_COUNTS_PER_RADIAN = (4096 * 2)/(2*math.pi)
 
 POLL_TIME=0.01
 def callback(cmd_vel):
