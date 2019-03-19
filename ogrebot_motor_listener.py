@@ -9,19 +9,19 @@ import rospy
 from geometry_msgs.msg import Twist
 from ogrebot.msg import robot_vels
 
-ROBOT_RADIUS = .1 #in meteres
-WHEEL_RADIUS = .08 # in meters
-ENCODER_COUNTS_PER_RADIAN = (4096 * 2)/(2*math.pi)
+ROBOT_RADIUS = .097 #in meteres
+WHEEL_RADIUS = .04 # in meters
+ENCODER_COUNTS_PER_RADIAN = 1303.7972938088 #(4096 * 2)/(2*math.pi)
 
 POLL_TIME=0.01
 def callback(cmd_vel):
     global my_drive, vels
     print("linearx", cmd_vel.linear.x)
     print("angularz", cmd_vel.angular.z)
-    linear = cmd_vel.linear.x * ENCODER_COUNTS_PER_RADIAN * WHEEL_RADIUS
-    angular = cmd_vel.angular.z * (WHEEL_RADIUS/ROBOT_RADIUS) * ENCODER_COUNTS_PER_RADIAN
-    leftWheelSpeed = linear - angular #Get linear speed of each wheel in m/s
-    rightWheelSpeed = linear + angular#Get linear speed of each wheel
+    linear = (cmd_vel.linear.x * ENCODER_COUNTS_PER_RADIAN)/ WHEEL_RADIUS
+    angular = cmd_vel.angular.z * (ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
+    leftMotorSpeed = linear - angular #Get linear speed of each wheel in m/s
+    rightMotorSpeed = linear + angular#Get linear speed of each wheel
     print(leftMotorSpeed)
     print(rightMotorSpeed)
     my_drive.axis0.controller.vel_setpoint = leftMotorSpeed
@@ -30,8 +30,8 @@ def callback(cmd_vel):
 
 def poll(event):
     global my_drive, vels
-    leftReading = my_drive.axis0.encoder.vel_estimate/ENCODER_COUNTS_PER_ROTATION
-    rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_ROTATION
+    leftReading = my_drive.axis0.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
+    rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
     msg = robot_vels()
     msg.left_vel = leftReading
     msg.right_vel = rightReading
