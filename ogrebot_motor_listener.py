@@ -16,16 +16,16 @@ ENCODER_COUNTS_PER_RADIAN = 1303.7972938088 #(4096 * 2)/(2*math.pi)
 POLL_TIME=0.01
 def callback(cmd_vel):
     global my_drive, vels
-    print("linearx", cmd_vel.linear.x)
-    print("angularz", cmd_vel.angular.z)
+#    print("linearx", cmd_vel.linear.x)
+#    print("angularz", cmd_vel.angular.z)
     linear = (cmd_vel.linear.x * ENCODER_COUNTS_PER_RADIAN)/ WHEEL_RADIUS
     angular = cmd_vel.angular.z * (ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
-    leftMotorSpeed = linear - angular #Get linear speed of each wheel in m/s
-    rightMotorSpeed = linear + angular#Get linear speed of each wheel
-    print(leftMotorSpeed)
-    print(rightMotorSpeed)
-    my_drive.axis0.controller.vel_setpoint = leftMotorSpeed
-    my_drive.axis1.controller.vel_setpoint = -rightMotorSpeed
+    leftMotorSpeed = linear + angular #Get linear speed of each wheel in m/s
+    rightMotorSpeed = linear - angular#Get linear speed of each wheel
+ #   print(leftMotorSpeed)
+  #  print(rightMotorSpeed)
+    my_drive.axis0.controller.vel_setpoint = -leftMotorSpeed
+    my_drive.axis1.controller.vel_setpoint = rightMotorSpeed
 
 
 def poll(event):
@@ -41,7 +41,7 @@ def poll(event):
 
 def listener():
     global my_drive, vels
-    print("looking for odrive")
+   # print("looking for odrive")
     my_drive = odrive.find_any()
     my_drive.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
     my_drive.axis1.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
