@@ -30,22 +30,26 @@ def deadReckonCallback(motor_vels):
         smoothedLeftVel+=SMOOTHING_ARRAY[i]*lastLeftPoints[i]
         smoothedRightVel+=SMOOTHING_ARRAY[i]*lastRightPoints[i]
 
-    smoothedLeftVel*=-1 #to rad/s
+    #smoothedLeftVel=motor_vels.left_vel
+    #smoothedRightVel=motor_vels.right_vel
+    smoothedLeftVel*=-0.045 #to rad/s
     #print("left vel: "+str(smoothedLeftVel))
-    smoothedRightVel*=1 #to rad/s
+    smoothedRightVel*=0.045 #to rad/s
     #print("right vel: "+str(smoothedRightVel))
     Vl=smoothedLeftVel
     Vr=smoothedRightVel
 
     v=(Vr+Vl)/2
     vtheta=(smoothedRightVel-smoothedLeftVel)/(2*motor_vels.ROBOT_RADIUS)
-    firstPart=motor_vels.POLL_TIME*v*(2+cos(motor_vels.POLL_TIME*vtheta/2))/3
+    print("v "+str(v)+" vtheta "+str(vtheta))
+    #firstPart=motor_vels.POLL_TIME*v*(2+cos(motor_vels.POLL_TIME*vtheta/2))/3
+    firstPart=1
     x+=motor_vels.POLL_TIME*v*firstPart*cos(theta+motor_vels.POLL_TIME*vtheta/2)
     y+=motor_vels.POLL_TIME*v*firstPart*sin(theta+motor_vels.POLL_TIME*vtheta/2)
     theta+=vtheta*motor_vels.POLL_TIME
 
 
-    print("x "+str(x)+" y "+str(y))
+    print("x "+str(x)+" y "+str(y)+" theta "+str(theta))
     odom_quat=tf.transformations.quaternion_from_euler(0,0,theta)
     odom_broadcaster.sendTransform(
         (x,y,0.0),
