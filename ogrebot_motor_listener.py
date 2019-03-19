@@ -24,8 +24,8 @@ def callback(cmd_vel):
     rightWheelSpeed = linear + angular#Get linear speed of each wheel
     print(leftMotorSpeed)
     print(rightMotorSpeed)
-    my_drive.axis0.controller.vel_setpoint = -leftMotorSpeed*ENCODER_COUNTS_PER_ROTATION
-    my_drive.axis1.controller.vel_setpoint = rightMotorSpeed*ENCODER_COUNTS_PER_ROTATION
+    my_drive.axis0.controller.vel_setpoint = leftMotorSpeed
+    my_drive.axis1.controller.vel_setpoint = -rightMotorSpeed
 
 
 def poll(event):
