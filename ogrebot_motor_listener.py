@@ -34,7 +34,8 @@ def callback(cmd_vel):
     my_drive.axis1.controller.vel_setpoint = rightMotorSpeed
 
 def turn(rad):
-    global my_drive
+    global my_drive, targetPos, isInPositionMode, speed
+    isInPositionMode=True
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     speed = my_drive.axis0.controller.config.vel_limit
@@ -43,14 +44,9 @@ def turn(rad):
     countsToMove=rad.data*(ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
     print("rad", rad.data)
     print("counts", countsToMove)
+    targetPos=my_drive.axis0.encoder.pos_estimate-countsToMove
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate + countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
-   # while (my_drive.axis0.encoder.vel_estimate < 100):
-   #     pass
-    my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-    my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-    my_drive.axis0.controller.config.vel_limit = speed
-    my_drive.axis1.controller.config.vel_limit = speed
 
 def drive(distance):
     global my_drive, targetPos, isInPositionMode, speed
@@ -66,8 +62,6 @@ def drive(distance):
     targetPos=my_drive.axis0.encoder.pos_estimate-countsToMove
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate - countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
-   # while (my_drive.axis0.encoder.vel_estimate < 100):
-   #     pass
 
 def poll(event):
     global my_drive, isInPositionMode, targetPos, vels, speed
