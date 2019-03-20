@@ -32,37 +32,37 @@ def turn(rad):
     global my_drive
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+    speed = my_drive.axis0.controller.config.vel_limit
+    my_drive.axis0.controller.config.vel_limit = 5000
     countsToMove=rad.data*(ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
     print("rad", rad.data)
     print("counts", countsToMove)
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate + countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
     time.sleep(10)
-#    while (my_drive.axis0.encoder.vel_estimate < 100):
- #       pass
-    my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
+   # while (my_drive.axis0.encoder.vel_estimate < 100):
+   #     pass
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-    my_drive.axis1.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-
+    my_drive.axis0.controller.config.vel_limit = speed
 
 def drive(distance):
     global my_drive
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+    speed = my_drive.axis0.controller.config.vel_limit
+    my_drive.axis0.controller.config.vel_limit = 5000
     countsToMove=(distance.data * ENCODER_COUNTS_PER_RADIAN)/WHEEL_RADIUS
     print("distance", distance.data)
     print("counts", countsToMove)
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate - countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
     time.sleep(10)
-#    while (my_drive.axis0.encoder.vel_estimate < 100):
- #       pass
-    my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
+   # while (my_drive.axis0.encoder.vel_estimate < 100):
+   #     pass
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-    my_drive.axis1.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-
+    my_drive.axis0.controller.config.vel_limit = speed
 
 def listener():
     global my_drive, vels
