@@ -44,7 +44,7 @@ def turn(rad):
     countsToMove=rad.data*(ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
     print("rad", rad.data)
     print("counts", countsToMove)
-    targetPos=my_drive.axis0.encoder.pos_estimate-countsToMove
+    targetPos=my_drive.axis0.encoder.pos_estimate+countsToMove
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate + countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
 
