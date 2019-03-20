@@ -7,6 +7,20 @@ import rospy
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
 
+def alignToWall():
+    global distances
+    global angle_increment
+    minDist = distances[0]
+    minDistAngle = 0
+    for i in range(int(len(distances) / 4)):
+        if distances[i] < minDist:
+            minDist = distances[i]
+            minDistAngle = 0.01745329251 * i
+    if minDistAngle < 90:
+        turnLeftDegrees(90 - minDistAngle)
+    else:
+        turnRightDegrees(minDistAngle - 90)
+
 def newwallfollower():
     global distances
     global turning
@@ -74,7 +88,7 @@ def setup():
     rospy.Subscriber("/scan", LaserScan, scanHandler)
     time.sleep(1)
     # turnRight(0)
-    newAlignToWall()
+    alignToWall()
     # newwallfollower()
     rospy.spin()
 

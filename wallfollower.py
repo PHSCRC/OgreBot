@@ -6,6 +6,7 @@ import math
 import rospy
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
+from std_msgs.msg import *
 
 # distances[0] is actually 90 degrees
 def wallfollower():
@@ -54,39 +55,41 @@ will only work for the beginning.
 def alignToWall():
     global distances
     global angle_increment
-    minDist = distances[0]
-    minDistAngle = 0
-    for i in range(int(len(distances) / 4)):
+    minDist = distances[90]
+    minDistAngle = 90 
+# this is bad rn
+    print(distances)
+    for i in range(-90, 90):
         if distances[i] < minDist:
             minDist = distances[i]
-            minDistAngle = angle_increment * i
-    if minDistAngle < 90:
-        turnLeftDegrees(90 - minDistAngle)
+            minDistAngle = i
+    print("Moving to " + str(minDistAngle) + "degrees")
+    if minDistAngle < 0:
+        turnLeftDegrees(math.fabs(minDistAngle))
     else:
-        turnRightDegrees(minDistAngle - 90)
-
-def alighnToWall
+        turnRightDegrees(minDistAngle)
 
 def setup():
     global distances
     global angle_increment
     global vel
+    global turn, drive
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    turn = rospy.Publisher('turn', Float64, queue_size=10)
+    drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
-    print('forward')
-   # moveForwardDistance(1)
-    time.sleep(1)
-    print('back')
-   # moveForwardDistance(-1)
-    time.sleep(1)
-    print('left')
-    turnLeftDegrees(90)
-    time.sleep(1)
-    print('right')
-    turnRightDegrees(90)
-    #wallfollower()
+#    turnLeftDegrees(31)
+#    time.sleep(2)
+#    turnRightDegrees(180)
+#    time.sleep(2) 
+#    moveForwardDistance(.5)
+#    time.sleep(2)
+#    moveForwardDistance(-.5)
+#    time.sleep(2)
+#    time.sleep(1)
+    alignToWall()
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
@@ -99,8 +102,8 @@ def scanHandler(scan):
     d = []
     for dist in range(len(distances)) :
         #print(distances[dist])
-        if (type(distances[dist]) is int) :
-            d.append(distances)
+        if (not math.isinf(distances[dist])) :
+            d.append(distances[dist])
 
         else :
             d.append(1000)
@@ -112,31 +115,22 @@ def scanHandler(scan):
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
-    time = distance / 0.2
-    moveForward(0.2)
-    #
-    rospy.sleep(time)
-    moveForward(0)
+    global drive
+    drive.publish(Float64(distance))
 
 # Turns left at 1 radians (? degrees) per second
 def turnLeftDegrees(degrees):
-    radians = degrees * (math.pi / (180))
-    turnLeft(1)
-    print('1')
-    #
-    rospy.sleep(radians)
-    print('2')
-    turnLeft(0)
-    print('3')
+    radians = - degrees * (math.pi / (180))
+    global turn
+    turn.publish(Float64(radians))
 
 # Turns right at 1 radians (? degrees) per second
 def turnRightDegrees(degrees):
-    radians = degrees * (math.pi / 180)
-    turnRight(1)
+    global turn
+    radians = degrees * (math.pi/180)
+    turn.publish(Float64(radians))
     #
-    rospy.sleep(radians)
-    turnRight(0)
-
+   
 #SPEED IS IN M/S
 def moveForward(speed):
     global vel
@@ -169,6 +163,8 @@ def turnRight(speed):
 
 if __name__ == '__main__':
     print('change is working')
+    turn = None
+    drive = None
     angle_increment = None
     vel = None
     distances = []
