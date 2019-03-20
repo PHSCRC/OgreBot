@@ -37,8 +37,8 @@ def turn(rad):
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     speed = my_drive.axis0.controller.config.vel_limit
-    my_drive.axis0.controller.config.vel_limit = 5000
-    my_drive.axis1.controller.config.vel_limit = 5000
+    my_drive.axis0.controller.config.vel_limit = 10000
+    my_drive.axis1.controller.config.vel_limit = 10000
     countsToMove=rad.data*(ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
     print("rad", rad.data)
     print("counts", countsToMove)
@@ -57,8 +57,8 @@ def drive(distance):
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     speed = my_drive.axis0.controller.config.vel_limit
-    my_drive.axis0.controller.config.vel_limit = 5000
-    my_drive.axis1.controller.config.vel_limit = 5000
+    my_drive.axis0.controller.config.vel_limit = 10000
+    my_drive.axis1.controller.config.vel_limit = 10000
     countsToMove=(distance.data * ENCODER_COUNTS_PER_RADIAN)/WHEEL_RADIUS
     print("distance", distance.data)
     print("counts", countsToMove)
