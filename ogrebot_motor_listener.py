@@ -18,6 +18,7 @@ POLL_TIME=0.01
 
 isInPositionMode=False
 targetPos=0
+speed=0
 
 def callback(cmd_vel):
     global my_drive, vels
@@ -44,7 +45,6 @@ def turn(rad):
     print("counts", countsToMove)
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate + countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
-    time.sleep(10)
    # while (my_drive.axis0.encoder.vel_estimate < 100):
    #     pass
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
@@ -53,7 +53,8 @@ def turn(rad):
     my_drive.axis1.controller.config.vel_limit = speed
 
 def drive(distance):
-    global my_drive, targetPos
+    global my_drive, targetPos, isInPositionMode, speed
+    isInPositionMode=True
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     speed = my_drive.axis0.controller.config.vel_limit
@@ -62,21 +63,23 @@ def drive(distance):
     countsToMove=(distance.data * ENCODER_COUNTS_PER_RADIAN)/WHEEL_RADIUS
     print("distance", distance.data)
     print("counts", countsToMove)
-    targetPos=countsToMove+my_drive.axis0.encoder.pos_estimate
+    targetPos=my_drive.axis0.encoder.pos_estimate-countsToMove
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate - countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
-    time.sleep(10)
    # while (my_drive.axis0.encoder.vel_estimate < 100):
    #     pass
 
-def poll():
-    global my_drive, isInPositionMode, targetPos, vels
+def poll(event):
+    global my_drive, isInPositionMode, targetPos, vels, speed
     if isInPositionMode:
-        if(targetPos-my_drive.axis0.controller.pos_estimate<100):
+        print(abs(targetPos-my_drive.axis0.encoder.pos_estimate))
+        if(abs(targetPos-my_drive.axis0.encoder.pos_estimate)<100):
             my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
             my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
             my_drive.axis0.controller.config.vel_limit = speed
             my_drive.axis1.controller.config.vel_limit = speed
+            isInPositionMode=False
+            targetPos=0
     leftReading = my_drive.axis0.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
     rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
     msg = robot_vels()
