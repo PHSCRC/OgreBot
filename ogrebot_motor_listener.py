@@ -43,7 +43,7 @@ def turn(rad):
     my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
     my_drive.axis1.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
-    my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL    
+    my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
 
 
 def drive(distance):
@@ -62,16 +62,7 @@ def drive(distance):
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
     my_drive.axis1.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-def poll(event):
-    global my_drive, vels
-    leftReading = my_drive.axis0.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
-    rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
-    msg = robot_vels()
-    msg.left_vel = leftReading
-    msg.right_vel = rightReading
-    msg.POLL_TIME = .01
-    msg.ROBOT_RADIUS = ROBOT_RADIUS
-    vels.publish(msg)
+
 
 def listener():
     global my_drive, vels
@@ -93,10 +84,10 @@ def listener():
     # run simultaneously.
     rospy.init_node('listener', anonymous=False)
     rospy.Subscriber("/cmd_vel", Twist, callback)
-    vels = rospy.Publisher('wheel_vels', robot_vels, queue_size=10)
+
     rospy.Subscriber("/turn", Float64, turn)
     rospy.Subscriber("/drive", Float64, drive)
-    rospy.Timer(rospy.Duration(POLL_TIME), poll, oneshot=False)
+
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
 
