@@ -10,6 +10,7 @@ from std_msgs.msg import *
 
 # distances[0] is actually 90 degrees
 def wallfollower():
+    print("wallfollower")
     global distances
     Running = True;
 
@@ -29,7 +30,9 @@ def wallfollower():
             print("Detected opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.05)
+            rospy.sleep(0.2)
             turnRightDegrees(90)
+            rospy.sleep(1)
             print("Moving into opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.05)
@@ -42,7 +45,8 @@ def wallfollower():
             detectOpening.pop(0)
 
         # This aligns regularly
-        moveForwardDistance(1)
+        moveForwardDistance(0.1)
+        rospy.sleep(0.5)
         # alignToWall()
 
 
@@ -59,15 +63,16 @@ def alignToWall():
     minDistAngle = 90 
 # this is bad rn
     print(distances)
-    for i in range(-90, 90):
+    for i in range(-45, 45):
         if distances[i] < minDist:
             minDist = distances[i]
             minDistAngle = i
     print("Moving to " + str(minDistAngle) + "degrees")
     if minDistAngle < 0:
-        turnLeftDegrees(math.fabs(minDistAngle))
+        turnLeftDegrees(-math.fabs(minDistAngle))
     else:
-        turnRightDegrees(minDistAngle)
+        turnRightDegrees(-minDistAngle)
+    rospy.sleep(1)
 
 def setup():
     global distances
@@ -90,6 +95,7 @@ def setup():
 #    time.sleep(2)
 #    time.sleep(1)
     alignToWall()
+    wallfollower()
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
