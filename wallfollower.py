@@ -20,6 +20,7 @@ forwardSpeed=0.1 #m/s
 pGain=0.05
 justTurned=False;
 
+
 # distances[0] is actually 90 degrees
 def wallfollower():
     print("wallfollower")
@@ -99,7 +100,7 @@ def setup():
 #    time.sleep(2)
 #    time.sleep(1)
     alignToWall(0)
-    wallfollower()
+    #wallfollower()
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
