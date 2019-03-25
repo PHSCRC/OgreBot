@@ -124,7 +124,7 @@ def scanHandler(scan):
 
     # Distance from right wall
     newDist = distances[0]
-    if(justMoved and distances[0]+distances[180]>60):
+    if(justTurned and distances[0]+distances[180]>60):
         #fireSweep()
         print("fire sweep")
     else:
