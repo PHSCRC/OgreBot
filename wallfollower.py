@@ -18,6 +18,7 @@ distances = []
 detectOpening=[];
 forwardSpeed=0.1 #m/s
 pGain=0.05
+justTurned=False;
 
 # distances[0] is actually 90 degrees
 def wallfollower():
@@ -122,31 +123,35 @@ def scanHandler(scan):
 
     # Distance from right wall
     newDist = distances[0]
+    if(justMoved and distances[0]+distances[180]>60):
+        #fireSweep()
+        print("fire sweep")
+    else:
+        # This determines if there is an opening to the right
+        if (newDist > sorted(detectOpening)[int(len(detectOpening) / 2)] + tolerance) :
+            print("Detected opening")
+            # Distance will have to be determined through testing
+            moveForwardDistance(0.2)
+            rospy.sleep(0.3)
+            turnRightDegrees(90)
+            rospy.sleep(0.5)
+            print("Moving into opening")
+            # Distance will have to be determined through testing
+            moveForwardDistance(0.30)
+            rospy.sleep(0.45)
+            justTurned=True;
+            detectOpening = [distances[0]]
 
-    # This determines if there is an opening to the right
-    if (newDist > sorted(detectOpening)[int(len(detectOpening) / 2)] + tolerance) :
-        print("Detected opening")
-        # Distance will have to be determined through testing
-        moveForwardDistance(0.2)
-        rospy.sleep(0.3)
-        turnRightDegrees(90)
-        rospy.sleep(0.5)
-        print("Moving into opening")
-        # Distance will have to be determined through testing
-        moveForwardDistance(0.30)
-        rospy.sleep(0.45)
-        detectOpening = [distances[0]]
+        else :
+            if(distances-distances[180]<0.1):
+                alignToWall(0)
+            p=pGain*(distances[0]-distances[180])
+            turnAndMove(forwardSpeed, p)
+            detectOpening.append(newDist)
 
-    else :
-        if(distances-distances[180]<0.1):
-            alignToWall(0)
-        p=pGain*(distances[0]-distances[180])
-        turnAndMove(forwardSpeed, p)
-        detectOpening.append(newDist)
-
-    # To keep it from overflowing memory
-    if (len(detectOpening) > tSize) :
-        detectOpening.pop(0)
+        # To keep it from overflowing memory
+        if (len(detectOpening) > tSize) :
+            detectOpening.pop(0)
 
     # This aligns regularly
     #print(distances)
