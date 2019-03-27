@@ -85,7 +85,7 @@ def alignToWall(n):
 def setup():
     global distances, angle_increment, turn, vel, drive
     rospy.init_node('wallfollower', anonymous=False)
-    rospy.Subscriber("/scan", LaserScan, scanHandler)
+    rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
@@ -140,15 +140,15 @@ def scanHandler(scan):
             print("Detected opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.04)
-            time.sleep(1)
+            rospy.sleep(1)
             turnRightDegrees(90)
-            time.sleep(1)
+            rospy.sleep(1)
             print("Moving into opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.3)
-            time.sleep(1)
+            rospy.sleep(1)
             justTurned=True;
-            detectOpening = [distances[0]]
+            
 
         else:
           #  if(abs(distances[0]-distances[180])>0.1):
@@ -162,8 +162,8 @@ def scanHandler(scan):
             detectOpening.pop(0)
 
     # This aligns regularly
-    print(detectOpening)
-
+    print(detectOpening, newDist)
+    time.sleep(5)
 '''
     if len(detectOpening)==0:
         detectOpening = [distances[0], distances[0], distances[0]]
