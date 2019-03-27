@@ -2,7 +2,6 @@
 
 import time
 import math
-
 import rospy
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
@@ -19,7 +18,6 @@ detectOpening=[];
 forwardSpeed=0.1 #m/s
 pGain=0.05
 justTurned=False;
-
 
 # distances[0] is actually 90 degrees
 def wallfollower():
@@ -68,6 +66,7 @@ will only work for the beginning.
     -Stephane
 '''
 def alignToWall(n):
+    global distances, angle_increment, detectOpening
     minDist = distances[90]
     minDistAngle = 90
 # this is bad rn
@@ -84,6 +83,7 @@ def alignToWall(n):
     rospy.sleep(0.25)
 
 def setup():
+    global distances, angle_increment, turn, vel, drive
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
@@ -99,14 +99,17 @@ def setup():
 #    moveForwardDistance(-.5)
 #    time.sleep(2)
 #    time.sleep(1)
+    turnAndMove(0, 0)
     alignToWall(0)
+    time.sleep(1)
     #wallfollower()
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
+    global distances, detectOpening, angle_increment, justTurned
     distances = scan.ranges
-
+ 
     inf = 1000
     d = []
     for dist in range(len(distances)) :
@@ -119,6 +122,7 @@ def scanHandler(scan):
 
     distances = d
     angle_increment = scan.angle_increment
+'''
     if len(detectOpening)==0:
         detectOpening = [distances[0], distances[0], distances[0]]
 
@@ -144,7 +148,7 @@ def scanHandler(scan):
             detectOpening = [distances[0]]
 
         else :
-            if(distances-distances[180]<0.1):
+            if(abs(distances[0]-distances[180])<0.1):
                 alignToWall(0)
             p=pGain*(distances[0]-distances[180])
             turnAndMove(forwardSpeed, p)
@@ -156,53 +160,74 @@ def scanHandler(scan):
 
     # This aligns regularly
     #print(distances)
-
+'''
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
+    global drive
     drive.publish(Float64(distance))
 
 # Turns left at 1 radians (? degrees) per second
 def turnLeftDegrees(degrees):
+    global turn
     radians = - degrees * (math.pi / (180))
     turn.publish(Float64(radians))
 
 # Turns right at 1 radians (? degrees) per second
 def turnRightDegrees(degrees):
+    global turn
     radians = degrees * (math.pi/180)
     turn.publish(Float64(radians))
     #
 
 #SPEED IS IN M/S
 def moveForward(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(speed, 0, 0)
     msg.angular = Vector3(0, 0, 0)
     vel.publish(msg)
 
 def moveBackward(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(-speed, 0, 0)
     msg.angular = Vector3(0, 0, 0)
     vel.publish(msg)
 
 def turnLeft(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(0, 0, 0)
     msg.angular = Vector3(0, 0, -speed)
     vel.publish(msg)
 
 def turnRight(speed):
+    global vel
     msg = Twist()
     msg.linear = Vector3(0, 0, 0)
     msg.angular = Vector3(0, 0, speed)
     vel.publish(msg)
 
 def turnAndMove(speedForward, speedClockwise):
+    global vel
     msg = Twist()
-    msg.linear = Vector3(speed, 0, 0)
+    msg.linear = Vector3(speedForward, 0, 0)
     msg.angular = Vector3(0, 0, speedClockwise)
     vel.publish(msg)
 
 
+def stopeverything():
+    print('exiting')
+    vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
+    msg = Twist()
+    msg.linear = Vector3(0, 0, 0)
+    msg.angular = Vector3(0, 0, 0)
+    vel.publish(msg)
+    print('done exiting')
+
 if __name__ == '__main__':
+    a=input()
+    rospy.on_shutdown(stopeverything)
     setup()
+
+
