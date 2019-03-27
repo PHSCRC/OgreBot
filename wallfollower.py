@@ -16,7 +16,7 @@ tSize = 5
 distances = []
 detectOpening=[];
 forwardSpeed=0.1 #m/s
-pGain=0.05
+pGain=0.0005
 justTurned=False;
 
 # distances[0] is actually 90 degrees
@@ -112,6 +112,7 @@ def scanHandler(scan):
 
     # inf = 1000
     d = []
+    newDist = 0
     for dist in range(len(distances)) :
         #print(distances[dist])
         if (not math.isinf(distances[dist])) :
@@ -149,19 +150,19 @@ def scanHandler(scan):
             justTurned=True;
             detectOpening.append(newDist)
 
-        # else :
-        #     if(abs(distances[0]-distances[180])>0.1):
-        #         alignToWall(0)
-        #     p=pGain*(distances[0]-distances[180])
-        #     turnAndMove(forwardSpeed, p)
-        #     detectOpening.append(newDist)
+        else:
+            if(abs(distances[0]-distances[180])>0.1):
+                alignToWall(0)
+            p=pGain*(distances[0]-distances[180])
+            turnAndMove(forwardSpeed, p)
+            detectOpening.append(newDist)
 
         # To keep it from overflowing memory
         if (len(detectOpening) > tSize) :
             detectOpening.pop(0)
 
     # This aligns regularly
-    #print(distances)
+    print(detectOpening)
 
 '''
     if len(detectOpening)==0:
