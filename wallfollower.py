@@ -151,8 +151,8 @@ def scanHandler(scan):
             detectOpening.append(newDist)
 
         else:
-            if(abs(distances[0]-distances[180])>0.1):
-                alignToWall(0)
+          #  if(abs(distances[0]-distances[180])>0.1):
+               # alignToWall(0)
             p=pGain*(distances[0]-distances[180])
             turnAndMove(forwardSpeed, p)
             detectOpening.append(newDist)
