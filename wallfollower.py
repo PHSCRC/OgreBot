@@ -108,62 +108,62 @@ def setup():
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned
-    distances = scan.ranges
+    if rospy.get_time()-scan.start.secs<0.35:
+        distances = scan.ranges
 
-    # inf = 1000
-    d = []
-    newDist = 0
-    for dist in range(len(distances)) :
-        #print(distances[dist])
-        if (not math.isinf(distances[dist])) :
-            d.append(distances[dist])
+        # inf = 1000
+        d = []
+        newDist = 0
+        for dist in range(len(distances)) :
+            #print(distances[dist])
+            if (not math.isinf(distances[dist])) :
+                d.append(distances[dist])
 
-        else :
-            d.append(1000)
+            else :
+                d.append(1000)
 
-    distances = d
-    angle_increment = scan.angle_increment
+        distances = d
+        angle_increment = scan.angle_increment
 
-    if len(detectOpening)==0:
-        detectOpening = [distances[0], distances[0], distances[0]]
+        if len(detectOpening)==0:
+            detectOpening = [distances[0], distances[0], distances[0]]
 
-    # Distance from right wall, 1000 = inf right now
-    if (distances[0] != 1000):
-        newDist = distances[0]
-    # For the room detection
-    if(False):
-        #fireSweep()
-        print("fire sweep")
-    else:
-        # This determines if there is an opening to the right
-        if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
-            print("Detected opening")
-            # Distance will have to be determined through testing
-            moveForwardDistance(0.04)
-            rospy.sleep(1)
-            turnRightDegrees(90)
-            rospy.sleep(1)
-            print("Moving into opening")
-            # Distance will have to be determined through testing
-            moveForwardDistance(0.3)
-            rospy.sleep(1)
-            justTurned=True;
-            
-
+        # Distance from right wall, 1000 = inf right now
+        if (distances[0] != 1000):
+            newDist = distances[0]
+        # For the room detection
+        if(False):
+            #fireSweep()
+            print("fire sweep")
         else:
-          #  if(abs(distances[0]-distances[180])>0.1):
-               # alignToWall(0)
-            p=pGain*(distances[0]-distances[180])
-            turnAndMove(forwardSpeed, p)
-            detectOpening.append(newDist)
+            # This determines if there is an opening to the right
+            if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
+                print("Detected opening")
+                # Distance will have to be determined through testing
+                moveForwardDistance(0.04)
+                rospy.sleep(1)
+                turnRightDegrees(90)
+                rospy.sleep(1)
+                print("Moving into opening")
+                # Distance will have to be determined through testing
+                moveForwardDistance(0.3)
+                rospy.sleep(1)
+                justTurned=True;
 
-        # To keep it from overflowing memory
-        if (len(detectOpening) > tSize) :
-            detectOpening.pop(0)
 
-    # This aligns regularly
-    print(detectOpening, newDist)
-    time.sleep(5)
+            else:
+              #  if(abs(distances[0]-distances[180])>0.1):
+                   # alignToWall(0)
+                p=pGain*(distances[0]-distances[180])
+                turnAndMove(forwardSpeed, p)
+                detectOpening.append(newDist)
+
+            # To keep it from overflowing memory
+            if (len(detectOpening) > tSize) :
+                detectOpening.pop(0)
+
+        # This aligns regularly
+        print(detectOpening, newDist)
 '''
     if len(detectOpening)==0:
         detectOpening = [distances[0], distances[0], distances[0]]
