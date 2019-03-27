@@ -108,7 +108,7 @@ def setup():
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned
-    if rospy.get_time()-scan.start.secs<0.35:
+    if rospy.get_time()-scan.header.stamp.secs<0.35:
         distances = scan.ranges
 
         # inf = 1000
