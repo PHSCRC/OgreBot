@@ -99,9 +99,9 @@ def setup():
 #    moveForwardDistance(-.5)
 #    time.sleep(2)
 #    time.sleep(1)
-    turnAndMove(0, 0)
-    alignToWall(0)
-    time.sleep(1)
+#    turnAndMove(0, 0)
+#    alignToWall(0)
+#    time.sleep(1)
     #wallfollower()
     rospy.spin()
 
@@ -109,7 +109,7 @@ def setup():
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned
     distances = scan.ranges
- 
+
     inf = 1000
     d = []
     for dist in range(len(distances)) :
@@ -122,6 +122,46 @@ def scanHandler(scan):
 
     distances = d
     angle_increment = scan.angle_increment
+
+    if len(detectOpening)==0:
+        detectOpening = [distances[0], distances[0], distances[0]]
+
+    # Distance from right wall
+    newDist = distances[0]
+    # For the room detection
+    if(False):
+        #fireSweep()
+        print("fire sweep")
+    else:
+        # This determines if there is an opening to the right
+        if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
+            print("Detected opening")
+            # Distance will have to be determined through testing
+            moveForwardDistance(0.2)
+            rospy.sleep(0.3)
+            turnRightDegrees(90)
+            rospy.sleep(0.5)
+            print("Moving into opening")
+            # Distance will have to be determined through testing
+            moveForwardDistance(0.30)
+            rospy.sleep(0.45)
+            justTurned=True;
+            detectOpening = [distances[0]]
+
+        else :
+            if(abs(distances[0]-distances[180])<0.1):
+                alignToWall(0)
+            p=pGain*(distances[0]-distances[180])
+            turnAndMove(forwardSpeed, p)
+            detectOpening.append(newDist)
+
+        # To keep it from overflowing memory
+        if (len(detectOpening) > tSize) :
+            detectOpening.pop(0)
+
+    # This aligns regularly
+    #print(distances)
+
 '''
     if len(detectOpening)==0:
         detectOpening = [distances[0], distances[0], distances[0]]
@@ -229,5 +269,3 @@ if __name__ == '__main__':
     a=input()
     rospy.on_shutdown(stopeverything)
     setup()
-
-
