@@ -11,12 +11,12 @@ turn = None
 drive = None
 angle_increment = None
 vel = None
-tolerance = 30
+tolerance = .30
 tSize = 5
 distances = []
 detectOpening=[];
 forwardSpeed=0.1 #m/s
-pGain=0.0005
+pGain=0
 justTurned=False;
 
 # distances[0] is actually 90 degrees
@@ -38,13 +38,13 @@ def wallfollower():
         if (newDist > sorted(detectOpening)[int(len(detectOpening) / 2)] + tolerance) :
             print("Detected opening")
             # Distance will have to be determined through testing
-            moveForwardDistance(0.05)
+           # moveForwardDistance(0.05)
             rospy.sleep(0.2)
             turnRightDegrees(90)
             rospy.sleep(1)
             print("Moving into opening")
             # Distance will have to be determined through testing
-            moveForwardDistance(0.05)
+           # moveForwardDistance(0.05)
             detectOpening = [distances[0]]
         else :
             detectOpening.append(newDist)
@@ -139,16 +139,16 @@ def scanHandler(scan):
         if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
             print("Detected opening")
             # Distance will have to be determined through testing
-            moveForwardDistance(0.2)
-            rospy.sleep(1)
+            moveForwardDistance(0.04)
+            time.sleep(1)
             turnRightDegrees(90)
-            rospy.sleep(1)
+            time.sleep(1)
             print("Moving into opening")
             # Distance will have to be determined through testing
-            moveForwardDistance(0.30)
-            rospy.sleep(1)
+            moveForwardDistance(0.3)
+            time.sleep(1)
             justTurned=True;
-            detectOpening.append(newDist)
+            detectOpening = [distances[0]]
 
         else:
           #  if(abs(distances[0]-distances[180])>0.1):
