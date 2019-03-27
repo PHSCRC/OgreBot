@@ -110,7 +110,7 @@ def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned
     distances = scan.ranges
 
-    inf = 1000
+    # inf = 1000
     d = []
     for dist in range(len(distances)) :
         #print(distances[dist])
@@ -126,8 +126,9 @@ def scanHandler(scan):
     if len(detectOpening)==0:
         detectOpening = [distances[0], distances[0], distances[0]]
 
-    # Distance from right wall
-    newDist = distances[0]
+    # Distance from right wall, 1000 = inf right now
+    if (distances[0] != 1000):
+        newDist = distances[0]
     # For the room detection
     if(False):
         #fireSweep()
@@ -138,22 +139,22 @@ def scanHandler(scan):
             print("Detected opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.2)
-            rospy.sleep(0.3)
+            rospy.sleep(1)
             turnRightDegrees(90)
-            rospy.sleep(0.5)
+            rospy.sleep(1)
             print("Moving into opening")
             # Distance will have to be determined through testing
             moveForwardDistance(0.30)
-            rospy.sleep(0.45)
+            rospy.sleep(1)
             justTurned=True;
-            detectOpening = [distances[0]]
-
-        else :
-            if(abs(distances[0]-distances[180])<0.1):
-                alignToWall(0)
-            p=pGain*(distances[0]-distances[180])
-            turnAndMove(forwardSpeed, p)
             detectOpening.append(newDist)
+
+        # else :
+        #     if(abs(distances[0]-distances[180])>0.1):
+        #         alignToWall(0)
+        #     p=pGain*(distances[0]-distances[180])
+        #     turnAndMove(forwardSpeed, p)
+        #     detectOpening.append(newDist)
 
         # To keep it from overflowing memory
         if (len(detectOpening) > tSize) :
@@ -266,6 +267,5 @@ def stopeverything():
     print('done exiting')
 
 if __name__ == '__main__':
-    a=input()
     rospy.on_shutdown(stopeverything)
     setup()
