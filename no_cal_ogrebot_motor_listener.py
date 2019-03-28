@@ -87,8 +87,8 @@ def listener():
     global my_drive, vels
    # print("looking for odrive")
     my_drive = odrive.find_any()
-    my_drive.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
-    my_drive.axis1.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
+#    my_drive.axis0.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
+#    my_drive.axis1.requested_state = AXIS_STATE_FULL_CALIBRATION_SEQUENCE
     while my_drive.axis0.current_state != AXIS_STATE_IDLE:
         rospy.sleep(0.1)
     my_drive.axis0.requested_state = AXIS_STATE_CLOSED_LOOP_CONTROL

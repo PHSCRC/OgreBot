@@ -1,0 +1,5 @@
+<launch>
+    <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
+    <node name="no_cal_motors" pkg="ogrebot" type="no_cal_ogrebot_motor_listener.py"/>
+    <node name="wallfollower" pkg="ogrebot" type="wallfollower.py"/>
+</launch>

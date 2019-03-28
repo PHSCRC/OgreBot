@@ -268,5 +268,9 @@ def stopeverything():
     print('done exiting')
 
 if __name__ == '__main__':
+    print(rospy.get_published_topics())
+    while not (['/motor_listener_listening', 'std_msgs/String'] in rospy.get_published_topics()):
+        pass 
+    print('starting')
     rospy.on_shutdown(stopeverything)
     setup()
