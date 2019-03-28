@@ -6,6 +6,8 @@ import rospy
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import *
+import Adafruit_TCS34725
+import smbus
 
 turn = None
 drive = None
@@ -17,49 +19,9 @@ distances = []
 detectOpening=[];
 forwardSpeed=0.1 #m/s
 pGain=0
-justTurned=False;
-
-# distances[0] is actually 90 degrees
-def wallfollower():
-    print("wallfollower")
-    Running = True;
-
-    sinceLastAlign = 0
-    # alignToWall()
-
-
-    detectOpening = [distances[0], distances[0], distances[0]]
-
-    while Running:
-        # Distance from right wall
-        newDist = distances[0]
-
-        # This determines if there is an opening to the right
-        if (newDist > sorted(detectOpening)[int(len(detectOpening) / 2)] + tolerance) :
-            print("Detected opening")
-            # Distance will have to be determined through testing
-           # moveForwardDistance(0.05)
-            rospy.sleep(0.2)
-            turnRightDegrees(90)
-            rospy.sleep(1)
-            print("Moving into opening")
-            # Distance will have to be determined through testing
-           # moveForwardDistance(0.05)
-            detectOpening = [distances[0]]
-        else :
-            detectOpening.append(newDist)
-
-        # To keep it from overflowing memory
-        if (len(detectOpening) > tSize) :
-            detectOpening.pop(0)
-
-        # This aligns regularly
-        moveForwardDistance(0.1)
-        rospy.sleep(0.5)
-        # alignToWall()
-
-
-
+justTurned=False
+soundStart=True
+tcs=Adafruit_TCS34725.TCS34725()
 '''
 For the beginning, it might be better look to at the back half of the robot to alignToWall, but this
 will only work for the beginning.
@@ -107,11 +69,10 @@ def setup():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
-    global distances, detectOpening, angle_increment, justTurned
-    if rospy.get_time()-scan.header.stamp.secs<0.35:
+    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs
+    if rospy.get_time()-scan.header.stamp.secs<0.35 & soundStart:
         distances = scan.ranges
 
-        # inf = 1000
         d = []
         newDist = 0
         for dist in range(len(distances)) :
@@ -131,16 +92,22 @@ def scanHandler(scan):
         # Distance from right wall, 1000 = inf right now
         if (distances[0] != 1000):
             newDist = distances[0]
+        r,g,b = tcs.get_raw_data()
         # For the room detection
-        if(False):
+        if(r+g+b>300):
             #fireSweep()
             print("fire sweep")
+            moveForward(0.15)
+            turnRightDegrees(360)
+            turnLeftDegrees(180)
+            moveForward(0.38)
         else:
             # This determines if there is an opening to the right
-            if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
+            #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
+            if (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
-                moveForwardDistance(0.04)
+                moveForwardDistance(0.15)
                 rospy.sleep(1)
                 turnRightDegrees(90)
                 rospy.sleep(1)
@@ -151,8 +118,10 @@ def scanHandler(scan):
                 justTurned=True;
 
 
+            elif distances[270]<0.13:
+                turnLeftDegrees(90)
             else:
-              #  if(abs(distances[0]-distances[180])>0.1):
+              #  if(abs(distances[]-distances[180])>0.1):
                    # alignToWall(0)
                 p=pGain*(distances[0]-distances[180])
                 turnAndMove(forwardSpeed, p)
@@ -164,45 +133,7 @@ def scanHandler(scan):
 
         # This aligns regularly
         print(detectOpening, newDist)
-'''
-    if len(detectOpening)==0:
-        detectOpening = [distances[0], distances[0], distances[0]]
 
-    # Distance from right wall
-    newDist = distances[0]
-    if(justTurned and distances[0]+distances[180]>60):
-        #fireSweep()
-        print("fire sweep")
-    else:
-        # This determines if there is an opening to the right
-        if (newDist > sorted(detectOpening)[int(len(detectOpening) / 2)] + tolerance) :
-            print("Detected opening")
-            # Distance will have to be determined through testing
-            moveForwardDistance(0.2)
-            rospy.sleep(0.3)
-            turnRightDegrees(90)
-            rospy.sleep(0.5)
-            print("Moving into opening")
-            # Distance will have to be determined through testing
-            moveForwardDistance(0.30)
-            rospy.sleep(0.45)
-            justTurned=True;
-            detectOpening = [distances[0]]
-
-        else :
-            if(abs(distances[0]-distances[180])<0.1):
-                alignToWall(0)
-            p=pGain*(distances[0]-distances[180])
-            turnAndMove(forwardSpeed, p)
-            detectOpening.append(newDist)
-
-        # To keep it from overflowing memory
-        if (len(detectOpening) > tSize) :
-            detectOpening.pop(0)
-
-    # This aligns regularly
-    #print(distances)
-'''
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
     global drive
