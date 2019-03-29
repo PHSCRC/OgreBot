@@ -1,4 +1,5 @@
 <launch>
     <include file="$(find rplidar_ros)/launch/rplidar.launch"/>
     <node name="motors" pkg="ogrebot" type="ogrebot_motor_listener.py"/>
+    <node name="colors" pkg="ogrebot" type="color_checker.py"/>
 </launch>

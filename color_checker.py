@@ -14,6 +14,6 @@ if __name__ == '__main__':
     while not rospy.is_shutdown():
         r,g,b,c = tcs.get_raw_data()
         if (c > 300):
-            color.pub(True)
+            color.publish(True)
             print('white')
         rospy.sleep(.01)
