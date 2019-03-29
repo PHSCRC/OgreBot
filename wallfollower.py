@@ -22,6 +22,12 @@ pGain=0
 justTurned=False
 soundStart=True
 tcs=Adafruit_TCS34725.TCS34725()
+
+recievedWhite=False
+justWentIntoRoom=False
+timeWentIntoRoom=0
+
+
 '''
 For the beginning, it might be better look to at the back half of the robot to alignToWall, but this
 will only work for the beginning.
@@ -70,6 +76,8 @@ def setup():
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned, soundStart, tcs
+    if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
+        justWentIntoRoom=False
     if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
         distances = scan.ranges
 
@@ -94,7 +102,7 @@ def scanHandler(scan):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
         # For the room detection
-        if(False):#r+g+b>300
+        if(recievedWhite and not justWentIntoRoom):#r+g+b>300
             #fireSweep()
             print("fire sweep")
             moveForward(0.15)
@@ -105,6 +113,8 @@ def scanHandler(scan):
             rospy.sleep(0.2)
             moveForward(0.38)
             rospy.sleep(0.2)
+            justWentIntoRoom=True
+            timeWentIntoRoom=rospy.get_time()
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
@@ -136,6 +146,7 @@ def scanHandler(scan):
 
         # This aligns regularly
         print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
+        recievedWhite=False
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
@@ -204,7 +215,7 @@ def stopeverything():
 if __name__ == '__main__':
     print(rospy.get_published_topics())
     while not (['/motor_listener_listening', 'std_msgs/String'] in rospy.get_published_topics()):
-        pass 
+        pass
     print('starting')
     rospy.on_shutdown(stopeverything)
     setup()
