@@ -109,17 +109,26 @@ def scanHandler(scan):
         print('inRoom', inRoom)
         if(inRoom):#r+g+b>300
             moveForward(0.15)
+            rospy.sleep(0.5)
            #fireSweep()
             print("fire sweep")
 #            turnRightDegrees(360)
             turnLeftDegrees(180)
+            rospy.sleep(1)
+            print("after turn")
             while (inRoom) :
+                print("getting out of room")
                 moveForwardDistance(0.05)
-                rospy.sleep(0.1)
+                rospy.sleep(1)
                 # alignToWall()
+            print("out of room?")
+            print(inRoom)
+            moveForwardDistance(0)
+            rospy.sleep(1)
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
+            print("Not in room")
             if (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
@@ -133,6 +142,7 @@ def scanHandler(scan):
                 rospy.sleep(1)
                 justTurned=True
             elif distances[90]<0.21:
+                print("Turning left")
                 turnLeftDegrees(90)
                 rospy.sleep(0.4)
             else:
