@@ -18,8 +18,10 @@ if __name__ == '__main__':
             color.publish(True)
             state = True
             print('white')
+            rospy.sleep(4)
         elif (c < 300 and (state)):
             state = False
             color.publish(False)
             print('black')
+            rospy.sleep(4)
         rospy.sleep(.01)

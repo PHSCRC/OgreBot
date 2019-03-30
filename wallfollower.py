@@ -84,7 +84,7 @@ def setup():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
-    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, recievedWhite, justWentIntoRoom
+    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, recievedWhite, justWentIntoRoom, timeWentIntoRoom
     if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
         justWentIntoRoom=False
     if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
