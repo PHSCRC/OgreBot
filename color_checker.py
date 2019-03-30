@@ -14,14 +14,9 @@ if __name__ == '__main__':
     tcs=Adafruit_TCS34725.TCS34725()
     while not rospy.is_shutdown():
         r,g,b,c = tcs.get_raw_data()
-        if (c > 300 and not state):
-            color.publish(True)
-            state = True
-            print('white')
-            rospy.sleep(4)
-        elif (c < 300 and (state)):
-            state = False
-            color.publish(False)
-            print('black')
-            rospy.sleep(4)
+        if (c > 300):
+            state = not state
+            color.publish(state)
+            rospy.sleep(2)
+
         rospy.sleep(.01)
