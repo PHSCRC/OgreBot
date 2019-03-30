@@ -23,7 +23,7 @@ justTurned=False
 soundStart=True
 tcs=Adafruit_TCS34725.TCS34725()
 
-recievedWhite=False
+inRoom=False
 justWentIntoRoom=False
 timeWentIntoRoom=0
 
@@ -51,9 +51,9 @@ def alignToWall(n):
     rospy.sleep(0.25)
 
 def colorHandler(data):
-    global recievedWhite
-    recievedWhite = data.data
-    print(recievedWhite)
+    global inRoom
+    inRoom = data.data
+    print(inRoom)
 
 def setup():
     global distances, angle_increment, turn, vel, drive
@@ -81,7 +81,7 @@ def setup():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
-    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, recievedWhite, justWentIntoRoom, timeWentIntoRoom
+    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom, justWentIntoRoom, timeWentIntoRoom
     if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
         justWentIntoRoom=False
     if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
@@ -108,10 +108,10 @@ def scanHandler(scan):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
         # For the room detection
-        if (recievedWhite):
+        if (inRoom):
             print('got white')
-        print('recievedWhite', recievedWhite)
-        if(recievedWhite):#r+g+b>300
+        print('inRoom', inRoom)
+        if(inRoom):#r+g+b>300
            #fireSweep()
             print("fire sweep")
             moveForward(0.15)
@@ -154,7 +154,7 @@ def scanHandler(scan):
                 detectOpening.pop(0)
 
         # This aligns regularly
-        print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
+        #print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
