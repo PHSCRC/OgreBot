@@ -52,12 +52,9 @@ def alignToWall(n):
 
 def colorHandler(data):
     global recievedWhite
-    if (data.data):
-    	recievedWhite = True
-        print('color on')
-    else:
-        recievedWhite = False
-        print('color off')
+    recievedWhite = data.data
+    print(recievedWhite)
+
 def setup():
     global distances, angle_increment, turn, vel, drive
     rospy.init_node('wallfollower', anonymous=False)
