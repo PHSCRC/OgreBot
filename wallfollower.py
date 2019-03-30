@@ -116,8 +116,8 @@ def scanHandler(scan):
             rospy.sleep(0.2)
             turnLeftDegrees(180)
             rospy.sleep(0.4)
-            moveForward(0.38)
-            rospy.sleep(0.2)
+            moveForward(0.6)
+            rospy.sleep(10)
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
