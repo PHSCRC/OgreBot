@@ -52,7 +52,12 @@ def alignToWall(n):
 
 def colorHandler(data):
     global recievedWhite
-    recievedWhite = True
+    if (data.data):
+    	recievedWhite = True
+        print('color on')
+    else:
+        recievedWhite = False
+        print('color off')
 def setup():
     global distances, angle_increment, turn, vel, drive
     rospy.init_node('wallfollower', anonymous=False)
@@ -106,15 +111,18 @@ def scanHandler(scan):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
         # For the room detection
+        if (recievedWhite):
+            print('got white')
+        print('recievedWhite', recievedWhite)
         if(recievedWhite and not justWentIntoRoom):#r+g+b>300
            #fireSweep()
             print("fire sweep")
             moveForward(0.15)
             rospy.sleep(0.2)
-            turnRightDegrees(360)
+#            turnRightDegrees(360)
             rospy.sleep(0.2)
             turnLeftDegrees(180)
-            rospy.sleep(0.2)
+            rospy.sleep(0.4)
             moveForward(0.38)
             rospy.sleep(0.2)
             justWentIntoRoom=True
@@ -150,7 +158,6 @@ def scanHandler(scan):
 
         # This aligns regularly
         print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
-        recievedWhite=False
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
