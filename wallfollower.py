@@ -24,8 +24,6 @@ soundStart=True
 tcs=Adafruit_TCS34725.TCS34725()
 
 inRoom=False
-justWentIntoRoom=False
-timeWentIntoRoom=0
 
 
 '''
@@ -81,9 +79,7 @@ def setup():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
-    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom, justWentIntoRoom, timeWentIntoRoom
-    if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
-        justWentIntoRoom=False
+    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom
     if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
         distances = scan.ranges
 
@@ -122,8 +118,6 @@ def scanHandler(scan):
             rospy.sleep(0.4)
             moveForward(0.38)
             rospy.sleep(0.2)
-            justWentIntoRoom=True
-            timeWentIntoRoom=rospy.get_time()
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
