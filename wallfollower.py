@@ -50,10 +50,14 @@ def alignToWall(n):
         turnRightDegrees(-minDistAngle)
     rospy.sleep(0.25)
 
+def colorHandler(data):
+    global recievedWhite
+    recievedWhite = True
 def setup():
     global distances, angle_increment, turn, vel, drive
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
+    rospy.Subscriber("/color", Bool, colorHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
@@ -75,9 +79,9 @@ def setup():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
-    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs
-#    if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
-#        justWentIntoRoom=False
+    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, recievedWhite, justWentIntoRoom
+    if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
+        justWentIntoRoom=False
     if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
         distances = scan.ranges
 
@@ -102,8 +106,7 @@ def scanHandler(scan):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
         # For the room detection
- #       if(recievedWhite and not justWentIntoRoom):#r+g+b>300
-        if (False): 
+        if(recievedWhite and not justWentIntoRoom):#r+g+b>300
            #fireSweep()
             print("fire sweep")
             moveForward(0.15)
