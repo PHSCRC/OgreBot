@@ -76,8 +76,8 @@ def setup():
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned, soundStart, tcs
-    if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
-        justWentIntoRoom=False
+#    if justWentIntoRoom and rospy.get_time()-timeWentIntoRoom>1.5:
+#        justWentIntoRoom=False
     if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
         distances = scan.ranges
 
@@ -102,8 +102,9 @@ def scanHandler(scan):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
         # For the room detection
-        if(recievedWhite and not justWentIntoRoom):#r+g+b>300
-            #fireSweep()
+ #       if(recievedWhite and not justWentIntoRoom):#r+g+b>300
+        if (False): 
+           #fireSweep()
             print("fire sweep")
             moveForward(0.15)
             rospy.sleep(0.2)
