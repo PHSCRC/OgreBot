@@ -108,16 +108,15 @@ def scanHandler(scan):
             print('got white')
         print('inRoom', inRoom)
         if(inRoom):#r+g+b>300
+            moveForward(0.15)
            #fireSweep()
             print("fire sweep")
-            moveForward(0.15)
-            rospy.sleep(0.2)
 #            turnRightDegrees(360)
-            rospy.sleep(0.2)
             turnLeftDegrees(180)
-            rospy.sleep(0.4)
-            moveForward(0.6)
-            rospy.sleep(10)
+            while (inRoom) :
+                moveForwardDistance(0.05)
+                rospy.sleep(0.1)
+                # alignToWall()
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
