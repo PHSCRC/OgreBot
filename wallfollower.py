@@ -111,7 +111,7 @@ def scanHandler(scan):
         if (recievedWhite):
             print('got white')
         print('recievedWhite', recievedWhite)
-        if(recievedWhite and not justWentIntoRoom):#r+g+b>300
+        if(recievedWhite):#r+g+b>300
            #fireSweep()
             print("fire sweep")
             moveForward(0.15)
