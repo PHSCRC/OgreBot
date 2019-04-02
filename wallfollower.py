@@ -18,7 +18,8 @@ tSize = 5
 distances = []
 detectOpening=[];
 forwardSpeed=0.1 #m/s
-pGain=0
+pGain=-0.000
+
 justTurned=False
 soundStart=True
 tcs=Adafruit_TCS34725.TCS34725()
@@ -33,10 +34,10 @@ will only work for the beginning.
 '''
 def alignToWall(n):
     global distances, angle_increment, detectOpening
-    minDist = distances[90]
-    minDistAngle = 90
-# this is bad rn
-    print(distances)
+    minDist = distances[n]
+    minDistAngle = n
+    # this is bad rn
+    #print(distances)
     for i in range(n-45, n+45):
         if distances[i] < minDist:
             minDist = distances[i]
@@ -51,7 +52,7 @@ def alignToWall(n):
 def colorHandler(data):
     global inRoom
     inRoom = data.data
-    print(inRoom)
+    print("in color handler: "+str(inRoom))
 
 def setup():
     global distances, angle_increment, turn, vel, drive
@@ -82,7 +83,7 @@ def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom
     if rospy.get_time()-scan.header.stamp.secs<1 and soundStart:
         distances = scan.ranges
-
+        print("scanhandler")
         d = []
         newDist = 0
         for dist in range(len(distances)) :
@@ -108,30 +109,48 @@ def scanHandler(scan):
             print('got white')
         print('inRoom', inRoom)
         if(inRoom):#r+g+b>300
-            moveForward(0.15)
-            rospy.sleep(0.5)
+            turnAndMove(0,0)
+            moveForward(0.2)
+            rospy.sleep(1)
            #fireSweep()
             print("fire sweep")
 #            turnRightDegrees(360)
             turnLeftDegrees(180)
             rospy.sleep(1)
             print("after turn")
+            i = 0
             while (inRoom) :
                 print("getting out of room")
+                print(i * 0.05)
                 moveForwardDistance(0.05)
-                rospy.sleep(1)
-                # alignToWall()
+                rospy.sleep(0.7)
+                i += 1
+            moveForwardDistance(0.05)
+            rospy.sleep(0.7)
             print("out of room?")
             print(inRoom)
-            moveForwardDistance(0)
-            rospy.sleep(1)
+            turnAndMove(0,0)
+            print('shit', distances[0])
+            print('fuck', distances[180])
+            if(distances[0]<distances[180]):
+                
+                alignToWall(0)
+            else:
+                alignToWall(180)
+               
+            rospy.sleep(0.5)
+            #turnRightDegrees(180)
+            #rospy.sleep(0.5)
+            #moveForwardDistance(0)
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
+
             print("Not in room")
             if (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
+                turnAndMove(0,0)
                 moveForwardDistance(0.1)
                 rospy.sleep(1)
                 turnRightDegrees(90)
@@ -141,15 +160,18 @@ def scanHandler(scan):
                 moveForwardDistance(0.3)
                 rospy.sleep(1)
                 justTurned=True
-            elif distances[90]<0.21:
+                turnAndMove(0,0)
+            elif distances[90]<0.32:
                 print("Turning left")
                 turnLeftDegrees(90)
-                rospy.sleep(0.4)
+                rospy.sleep(1)
             else:
               #  if(abs(distances[]-distances[180])>0.1):
-                   # alignToWall(0)
-                p=pGain*(distances[0]-distances[180])
-                turnAndMove(forwardSpeed, p)
+                   # alignToWa
+                #if(18<24-distances[0]<30):
+                #    alignToWall(0)
+                p=24-distances[0]
+                turnAndMove(forwardSpeed, p*pGain)
                 detectOpening.append(newDist)
 
             # To keep it from overflowing memory
