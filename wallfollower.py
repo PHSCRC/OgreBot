@@ -45,9 +45,9 @@ def alignToWall(n):
             minDistAngle = i
     print("Moving to " + str(minDistAngle) + "degrees")
     if minDistAngle < 0:
-        turnLeftDegrees(-math.fabs(minDistAngle))
+        turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
-        turnRightDegrees(-minDistAngle)
+        turnRightDegrees(n-minDistAngle)
     rospy.sleep(0.25)
 
 def colorHandler(data):
@@ -101,7 +101,7 @@ def scanHandler(scan):
         distances = d
         angle_increment = scan.angle_increment
 
-        if len(detectOpening)==0:
+        if len(detectOpening)==0 or justTurned:
             detectOpening = [distances[0], distances[0], distances[0]]
 
         # Distance from right wall, 1000 = inf right now
@@ -134,28 +134,34 @@ def scanHandler(scan):
             print("out of room?")
             print(inRoom)
             turnAndMove(0,0)
-            inRoom=2
+            justTurned=True
             #turnRightDegrees(180)
             #rospy.sleep(0.5)
             #moveForwardDistance(0)
-        elif(inRoom==2):
+        elif(justTurned):
             if(distances[0]<distances[180]):
                 alignToWall(0)
             else:
                 alignToWall(180)
             rospy.sleep(0.7)
             inRoom=0
+            justTurned=False
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
 
             print("Not in room")
-            if (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
+            if distances[90]<0.32:
+                print("Turning left")
+                turnLeftDegrees(90)
+                rospy.sleep(1)
+            elif (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
                 turnAndMove(0,0)
-                moveForwardDistance(0.1)
-                rospy.sleep(1)
+                if(newDist>(sum(detectOpening)/len(detectOpening))+tolerance):
+                    moveForwardDistance(0.1)
+                    rospy.sleep(1)
                 turnRightDegrees(90)
                 rospy.sleep(1)
                 print("Moving into opening")
@@ -164,10 +170,6 @@ def scanHandler(scan):
                 rospy.sleep(1)
                 justTurned=True
                 turnAndMove(0,0)
-            elif distances[90]<0.32:
-                print("Turning left")
-                turnLeftDegrees(90)
-                rospy.sleep(1)
             else:
               #  if(abs(distances[]-distances[180])>0.1):
                    # alignToWa
