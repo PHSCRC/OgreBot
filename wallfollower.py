@@ -13,27 +13,34 @@ turn = None
 drive = None
 angle_increment = None
 vel = None
+toggle_extinguisher=None
 tolerance = .30
 tSize = 5
 distances = []
-detectOpening=[];
-forwardSpeed=0.1 #m/s
-pGain=-0.000
-acceptTime=1
+detectOpening = [];
+forwardSpeed = 0.1 #m/s
+pGain = -0.000
+acceptTime = 1
+latestFireReading = None
 
-justTurned=False
-soundStart=True
-tcs=Adafruit_TCS34725.TCS34725()
+justTurned = False
+soundStart = False
+tcs = Adafruit_TCS34725.TCS34725()
 
-inRoom=False
+inRoom = False
 
+def fireSweep(fireReading):
+    global inRoom, soundStart
+    if (fireReading > 300):
+        soundStart = True
+    else:
+        if (inRoom):
+            latestFireReading = fireReading
 
-'''
-For the beginning, it might be better look to at the back half of the robot to alignToWall, but this
-will only work for the beginning.
-    -Stephane
-'''
-def alignToWall(n):
+def extinguisher():
+    print("in extinguisher")
+
+def alignToWall(n) :
     global distances, angle_increment, detectOpening
     minDist = distances[n]
     minDistAngle = n
@@ -50,22 +57,26 @@ def alignToWall(n):
         turnRightDegrees(n-minDistAngle)
     rospy.sleep(0.25)
 
-def colorHandler(data):
+
+
+def colorHandler(data) :
     global inRoom
-    if(data.data):
-        inRoom=1
+    if (data.data) :
+        inRoom = 1
     else:
-        inRoom=0
+        inRoom = 0
     print("in color handler: "+str(inRoom))
 
-def setup():
-    global distances, angle_increment, turn, vel, drive
+def setup() :
+    global distances, angle_increment, turn, vel, drive, fireReading, toggle_extinguisher
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     rospy.Subscriber("/color", Bool, colorHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
+    rospy.Subscriber('/arduinoInfo', Integer, fireSweep)
+    toggle_extinguisher=ospy.Publisher('/toggle_extinguisher', Empty, queue_size=10)
     time.sleep(1)
 #    turnLeftDegrees(31)
 #    time.sleep(2)
@@ -82,46 +93,87 @@ def setup():
     #wallfollower()
     rospy.spin()
 
+def removeInf(distances) :
+    d = []
+    newDist = 0
+    for dist in range(len(distances)) :
+        #print(distances[dist])
+        if (not math.isinf(distances[dist])) :
+            d.append(distances[dist])
+
+        else :
+            d.append(1000)
+    return d
+
+
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
-def scanHandler(scan):
-    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom, acceptTime
+def scanHandler(scan) :
+    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom, acceptTime, latestFireReading, toggle_extinguisher
     if rospy.get_time()-scan.header.stamp.secs<acceptTime and soundStart:
         distances = scan.ranges
         print("scanhandler")
-        d = []
-        newDist = 0
-        for dist in range(len(distances)) :
-            #print(distances[dist])
-            if (not math.isinf(distances[dist])) :
-                d.append(distances[dist])
 
-            else :
-                d.append(1000)
-
-        distances = d
         angle_increment = scan.angle_increment
 
-        if len(detectOpening)==0 or justTurned:
+        distances = removeInf(distances)
+
+        if not len(detectOpening) or justTurned:
             detectOpening = [distances[0], distances[0], distances[0]]
 
         # Distance from right wall, 1000 = inf right now
         if (distances[0] != 1000):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
+
         # For the room detection
-        if (inRoom):
-            print('got white')
         print('inRoom', inRoom)
-        if(inRoom==1):#r+g+b>300
-            turnAndMove(0,0)
+        if (inRoom) :#r+g+b>300
+            print ("Got White")
+            turnAndMove(0, 0)
             moveForward(0.2)
             rospy.sleep(1)
-           #fireSweep()
-            print("fire sweep")
+            #fireSweep()
+
+            print("Fire sweep")
 #            turnRightDegrees(360)
             turnLeftDegrees(180)
             rospy.sleep(1)
-            print("after turn")
+
+            print("After turn")
+            for i2 in range(0, 12):
+                turnRightDegrees(30)
+                rospy.sleep(1)
+                if (latestFireReading) :
+                    oldReading=latestFireReading
+                    turnRightDegrees(30)
+                    rospy.sleep(1)
+                    if (oldReading < latestReading):
+                        while (oldReading < latestReading) :
+                            turnRightDegrees(30)
+                            rospy.sleep(1)
+                        while (oldReading < latestReading) :
+                            turnLeftDegrees(5)
+                            rospy.sleep(1)
+                        turnRightDegrees(5)
+                        toggle_extinguisher.publish()
+                        rospy.sleep(10)
+                        toggle_extinguisher.publish()
+                    else:
+                        oldReading, latestReading = latestReading, oldReading
+                        while(oldReading<latestReading)
+                            turnLeftDegrees(30)
+                            rospy.sleep(1)
+                        while(oldReading<latestReading):
+                            turnRightDegrees(5)
+                            rospy.sleep(1)
+                        turnLeftDegrees(5)
+                        toggle_extinguisher.publish()
+                        rospy.sleep(10)
+                        toggle_extinguisher.publish()
+                    break
+
+
+
             i = 0
             while (inRoom==1) :
                 print("getting out of room")
