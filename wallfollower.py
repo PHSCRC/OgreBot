@@ -31,6 +31,12 @@ tcs = Adafruit_TCS34725.TCS34725()
 
 inRoom = False
 
+ard = None
+
+def read_flame () :
+    global ard
+    return ard.readline().decode().strip()
+
 def toggle_extinguisher(state):
     if(state):
         GPIO.output(21, GPIO.HIGH)
@@ -67,7 +73,7 @@ def colorHandler(data) :
 def setup() :
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(21, GPIO.OUT)
-    global distances, angle_increment, turn, vel, drive, fireReading
+    global distances, angle_increment, turn, vel, drive, fireReading, ard
     for port, desc, hwid in sorted(ports):
         print("{}: {} [{}]".format(port, desc, hwid))
         if 'USB2.0-Serial' in desc:
@@ -79,14 +85,13 @@ def setup() :
                 if curr == 'sound':
                     print('got sound')
                     break
-                time.sleep(0.05)
+    time.sleep(1)
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     rospy.Subscriber("/color", Bool, colorHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
-    rospy.Subscriber('/arduinoInfo', Integer, fireSweep)
     time.sleep(1)
 #    turnLeftDegrees(31)
 #    time.sleep(2)
@@ -138,49 +143,76 @@ def scanHandler(scan) :
         # For the room detection
         print('inRoom', inRoom)
         if (inRoom) :#r+g+b>300
+
+
             print ("Got White")
             turnAndMove(0, 0)
             moveForward(0.2)
             rospy.sleep(1)
             #fireSweep()
 
+
             print("Fire sweep")
 #            turnRightDegrees(360)
             turnLeftDegrees(180)
             rospy.sleep(1)
 
+            oldRead = read_flame()
+            latestRead = 0
+
             print("After turn")
             for i2 in range(0, 12):
                 turnRightDegrees(30)
                 rospy.sleep(1)
-                if (latestFireReading) :
-                    oldReading=latestFireReading
-                    turnRightDegrees(30)
-                    rospy.sleep(1)
-                    if (oldReading < latestReading):
-                        while (oldReading < latestReading) :
+                latestRead = read_flame()
+
+                if (latestRead > 100) :
+
+                    if (oldRead < latestRead):
+                        while (oldRead < latestRead) :
                             turnRightDegrees(30)
                             rospy.sleep(1)
-                        while (oldReading < latestReading) :
+                            oldRead = latestRead
+                            latestRead = read_flame()
+
+                        oldRead, latestRead = latestRead, oldRead
+                        while (oldRead < latestRead) :
                             turnLeftDegrees(5)
                             rospy.sleep(1)
-                        turnRightDegrees(5)
+                            oldRead = latestRead
+                            latestRead = read_flame()
+                            
+                        turnRightDegrees(5) # ?
                         toggle_extinguisher(True)
                         rospy.sleep(10)
                         toggle_extinguisher(False)
+
+
                     else:
-                        oldReading, latestReading = latestReading, oldReading
-                        while(oldReading<latestReading)
+                        oldRead, latestRead = latestRead, oldRead
+                        while (oldRead < latestRead) :
                             turnLeftDegrees(30)
                             rospy.sleep(1)
-                        while(oldReading<latestReading):
+                            oldRead = latestRead
+                            latestRead = read_flame()
+
+
+                        oldRead, latestRead = latestRead, oldRead
+                        while (oldRead < latestRead) :
                             turnRightDegrees(5)
                             rospy.sleep(1)
-                        turnLeftDegrees(5)
+                            oldRead = latestRead
+                            latestRead = read_flame()
+
+                        turnLeftDegrees(5) # ?
                         toggle_extinguisher(True)
                         rospy.sleep(10)
                         toggle_extinguisher(False)
+
                     break
+
+                oldRead = latestRead
+
 
 
 
