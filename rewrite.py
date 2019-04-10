@@ -178,6 +178,20 @@ def sweepRoom () :
 
         oldRead = latestRead
 
+def planeDistance (angle) :
+    global distances
+    hypo = distances[angle]
+    if hypo != -1 :
+        x = hypo * math.cos(angle * angle_increment) # convert to radians
+        y = hypo * math.sin(angle * angle_increment)
+
+    else :
+        x = -1
+        y = -1
+
+    return [x, y]
+
+
 
 def scanHandler(scan) :
     global distances, detectOpening, angle_increment, justTurned, tcs, inRoom, acceptTime
@@ -190,10 +204,6 @@ def scanHandler(scan) :
         r,g,b,c = tcs.get_raw_data()
 
         distances = removeInf(distances)
-
-        if not len(detectOpening) or justTurned:
-            detectOpening = [distances[0], distances[0], distances[0]]
-
 
         # For the room detection
         print('inRoom', inRoom)
@@ -247,7 +257,13 @@ def scanHandler(scan) :
             if (distances[0] > 0.65 or distances[0] == -1) :
                 print("Turn right")
                 turnAndMove(0,0)
-                moveForwardDistance(0.075) # Arbitrary, to make sure robot clears opening
+
+                xy315 = planeDistance(315)
+                while (xy315[1] > -0.1) :
+                    moveForwardDistance(0.01) # Arbitrary, to make sure robot clears opening
+                    rospy.sleep(0.5)
+                    xy315 = planeDistance(315)
+
                 rospy.sleep(1)
 
                 turnRightDegrees(90)
