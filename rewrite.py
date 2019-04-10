@@ -241,8 +241,10 @@ def scanHandler(scan) :
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
 
-
-            if (distances[0] > 0.65) :
+            print("0: " + str(distances[0]))
+            print("90: " + str(distances[90]))
+            print("180: " + str(distances[180]))
+            if (distances[0] > 0.65 or distances[0] == -1) :
                 print("Turn right")
                 turnAndMove(0,0)
                 moveForwardDistance(0.1) # Arbitrary, to make sure robot clears opening
@@ -256,9 +258,9 @@ def scanHandler(scan) :
                 rospy.sleep(1)
                 justTurned = True
                 turnAndMove(0,0)
-                alignToWall(0)
+               # alignToWall(0)
 
-            elif distances[90] > 0.4:
+            elif distances[90] > 0.4 or distances[90] == -1:
                 print("Go Forward")
 
                 moveForward(0.05)
@@ -279,7 +281,7 @@ def scanHandler(scan) :
                 rospy.sleep(1)
                 justTurned = True
                 turnAndMove(0,0)
-                alignToWall(0)
+                #alignToWall(0)
 
         # This aligns regularly
         #print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
