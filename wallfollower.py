@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-
 import time
+import serial
+import serial.tools.list_ports
+ports = serial.tools.list_ports.comports()
 import math
 import rospy
 from geometry_msgs.msg import Twist, Vector3
@@ -8,12 +10,13 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import *
 import Adafruit_TCS34725
 import smbus
+import RPi.GPIO as GPIO
 
 turn = None
 drive = None
 angle_increment = None
 vel = None
-toggle_extinguisher=None
+
 tolerance = .30
 tSize = 5
 distances = []
@@ -21,7 +24,6 @@ detectOpening = [];
 forwardSpeed = 0.1 #m/s
 pGain = -0.000
 acceptTime = 1
-latestFireReading = None
 
 justTurned = False
 soundStart = False
@@ -29,16 +31,11 @@ tcs = Adafruit_TCS34725.TCS34725()
 
 inRoom = False
 
-def fireSweep(fireReading):
-    global inRoom, soundStart
-    if (fireReading > 300):
-        soundStart = True
+def toggle_extinguisher(state):
+    if(state):
+        GPIO.output(21, GPIO.HIGH)
     else:
-        if (inRoom):
-            latestFireReading = fireReading
-
-def extinguisher():
-    print("in extinguisher")
+        GPIO.output(21, GPIO.LOW)
 
 def alignToWall(n) :
     global distances, angle_increment, detectOpening
@@ -68,7 +65,21 @@ def colorHandler(data) :
     print("in color handler: "+str(inRoom))
 
 def setup() :
-    global distances, angle_increment, turn, vel, drive, fireReading, toggle_extinguisher
+    GPIO.setmode(GPIO.BCM)
+    GPIO.setup(21, GPIO.OUT)
+    global distances, angle_increment, turn, vel, drive, fireReading
+    for port, desc, hwid in sorted(ports):
+        print("{}: {} [{}]".format(port, desc, hwid))
+        if 'USB2.0-Serial' in desc:
+            print('arduino connected')
+            ard = serial.Serial(port, 9600, timeout=0)
+            while True:
+                curr = ard.readline().decode().strip()
+#                print(curr)
+                if curr == 'sound':
+                    print('got sound')
+                    break
+                time.sleep(0.05)
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     rospy.Subscriber("/color", Bool, colorHandler)
@@ -76,7 +87,6 @@ def setup() :
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     rospy.Subscriber('/arduinoInfo', Integer, fireSweep)
-    toggle_extinguisher=ospy.Publisher('/toggle_extinguisher', Empty, queue_size=10)
     time.sleep(1)
 #    turnLeftDegrees(31)
 #    time.sleep(2)
@@ -108,8 +118,8 @@ def removeInf(distances) :
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan) :
-    global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom, acceptTime, latestFireReading, toggle_extinguisher
-    if rospy.get_time()-scan.header.stamp.secs<acceptTime and soundStart:
+    global distances, detectOpening, angle_increment, justTurned, tcs, inRoom, acceptTime
+    if rospy.get_time()-scan.header.stamp.secs<acceptTime:
         distances = scan.ranges
         print("scanhandler")
 
@@ -155,9 +165,9 @@ def scanHandler(scan) :
                             turnLeftDegrees(5)
                             rospy.sleep(1)
                         turnRightDegrees(5)
-                        toggle_extinguisher.publish()
+                        toggle_extinguisher(True)
                         rospy.sleep(10)
-                        toggle_extinguisher.publish()
+                        toggle_extinguisher(False)
                     else:
                         oldReading, latestReading = latestReading, oldReading
                         while(oldReading<latestReading)
@@ -167,9 +177,9 @@ def scanHandler(scan) :
                             turnRightDegrees(5)
                             rospy.sleep(1)
                         turnLeftDegrees(5)
-                        toggle_extinguisher.publish()
+                        toggle_extinguisher(True)
                         rospy.sleep(10)
-                        toggle_extinguisher.publish()
+                        toggle_extinguisher(False)
                     break
 
 
