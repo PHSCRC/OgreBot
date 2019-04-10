@@ -59,7 +59,7 @@ def alignToWall(n) :
         turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
         turnRightDegrees(n-minDistAngle)
-    rospy.sleep(0.25)
+    rospy.sleep(1)
 
 
 
@@ -247,7 +247,7 @@ def scanHandler(scan) :
             if (distances[0] > 0.65 or distances[0] == -1) :
                 print("Turn right")
                 turnAndMove(0,0)
-                moveForwardDistance(0.1) # Arbitrary, to make sure robot clears opening
+                moveForwardDistance(0.075) # Arbitrary, to make sure robot clears opening
                 rospy.sleep(1)
 
                 turnRightDegrees(90)
@@ -264,7 +264,6 @@ def scanHandler(scan) :
                 print("Go Forward")
 
                 moveForward(0.05)
-                turnLeftDegrees(90)
                 rospy.sleep(1)
 
             else:
