@@ -259,11 +259,13 @@ def scanHandler(scan) :
                 turnAndMove(0,0)
 
                 xy315 = planeDistance(315)
+                print("Initial: " + str(xy315))
                 while (xy315[1] > -0.1) :
                     moveForwardDistance(0.01) # Arbitrary, to make sure robot clears opening
                     rospy.sleep(0.5)
                     xy315 = planeDistance(315)
-
+                    print("After initial: " + str(xy315))
+                
                 rospy.sleep(1)
 
                 turnRightDegrees(90)

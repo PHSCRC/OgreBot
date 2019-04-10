@@ -24,7 +24,7 @@ detectOpening = [];
 forwardSpeed = 0.1 #m/s
 pGain = -0.000
 acceptTime = 1
-
+newDist = None
 justTurned = False
 soundStart = False
 tcs = Adafruit_TCS34725.TCS34725()
@@ -47,8 +47,6 @@ def alignToWall(n) :
     global distances, angle_increment, detectOpening
     minDist = distances[n]
     minDistAngle = n
-    # this is bad rn
-    #print(distances)
     for i in range(n-25, n+25):
         if distances[i] < minDist:
             minDist = distances[i]
@@ -93,24 +91,10 @@ def setup() :
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
-#    turnLeftDegrees(31)
-#    time.sleep(2)
-#    turnRightDegrees(180)
-#    time.sleep(2)
-#    moveForwardDistance(.5)
-#    time.sleep(2)
-#    moveForwardDistance(-.5)
-#    time.sleep(2)
-#    time.sleep(1)
-#    turnAndMove(0, 0)
-#    alignToWall(0)
-#    time.sleep(1)
-    #wallfollower()
     rospy.spin()
 
 def removeInf(distances) :
     d = []
-    newDist = 0
     for dist in range(len(distances)) :
         #print(distances[dist])
         if (not math.isinf(distances[dist])) :
@@ -136,8 +120,10 @@ def scanHandler(scan) :
             detectOpening = [distances[0], distances[0], distances[0]]
 
         # Distance from right wall, 1000 = inf right now
+        newDist = 0
         if (distances[0] != 1000):
             newDist = distances[0]
+            
         r,g,b,c = tcs.get_raw_data()
 
         # For the room detection
@@ -149,7 +135,6 @@ def scanHandler(scan) :
             turnAndMove(0, 0)
             moveForward(0.2)
             rospy.sleep(1)
-            #fireSweep()
 
 
             print("Fire sweep")
@@ -162,6 +147,8 @@ def scanHandler(scan) :
 
             print("After turn")
             for i2 in range(0, 12):
+                print("Sweeping room " + str(i2))
+                print("Latest Read " + str(latestRead))
                 turnRightDegrees(30)
                 rospy.sleep(1)
                 latestRead = read_flame()
@@ -238,12 +225,12 @@ def scanHandler(scan) :
             else:
                 alignToWall(180)
             rospy.sleep(0.7)
-            inRoom=0
             justTurned=False
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
-
+            
+            #newDist = distances[0]
             print("Not in room")
             if distances[90]<0.32:
                 print("Turning left")
