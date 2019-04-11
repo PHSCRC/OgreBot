@@ -76,20 +76,58 @@ def infToAdj () :
     return adj
 
 
-def alignToWallExp(n) :
+def alignToWallExp(n, coneSize) :
+    print("EXPERIMENTAL ALIGN TO WALL")
     global distances, angle_increment, detectOpening
-    minDist = distances[n]
-    minDistAngle = n
-    for i in range(n-25, n+25):
-        if distances[i] < minDist:
-            minDist = distances[i]
-            minDistAngle = i
+
+    dist = infToAdj()
+    minDistSum = 1000 # Arbitrary high value to find mins
+    minDistAngle = 0
+
+    numValuesTaken = 5
+    for i in range(n - coneSize, n + coneSize - numValuesTaken) :
+
+        sum = 0
+        for j in range(0, numValuesTaken) :
+            sum += dist[i + j]
+
+        if sum < minDistSum :
+            minDistSum = sum
+            minDistAngle = i + numValuesTaken // 2
+
     print("Moving to " + str(minDistAngle) + "degrees")
+
     if minDistAngle < 0:
         turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
         turnRightDegrees(n-minDistAngle)
-    rospy.sleep(0.25)
+
+    rospy.sleep(0.5)
+
+
+
+def alignToClosestWallExp() :
+    print("EXPERIMENTAL ALIGN TO CLOSEST WALL")
+    global distances, angle_increment, detectOpening
+
+    dist = infToAdj()
+    minDistSum = 1000 # Arbitrary high value to find mins
+    minDistAngle = 0
+
+    numValuesTaken = 5
+    for i in range(0, 360 - numValuesTaken) :
+
+        sum = 0
+        for j in range(0, numValuesTaken) :
+            sum += dist[i + j]
+
+        if sum < minDistSum :
+            minDistSum = sum
+            minDistAngle = i + numValuesTaken // 2
+
+    print("Moving to " + str(minDistAngle) + "degrees")
+    turnLeftDegrees(minDistAngle)
+    rospy.sleep(0.5)
 
 
 
@@ -132,7 +170,7 @@ def setup() :
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
-    runConstant()
+    moveAround()
     rospy.spin()
 
 def removeInf(distances) :
@@ -173,55 +211,58 @@ def handleRoom():
 
 
     print("Fire sweep")
-    oldRead = -1
-    latestRead = -1
+
     slowturnRightDegrees(540)
-    maxRead = -1
-
-    fireInRoom = False
 
 
-    numQuestionableReads = 0
-
-    initialTime = rospy.get_time()
-    while (rospy.get_time() - initialTime < 20) : # for 10 seconds
-        latestRead = read_flame()
-        ard.flushInput()
-        if not latestRead :
-            continue
-        else :
-            latestRead = int(latestRead)
-        print("Latest: " + str(latestRead))
-        print("Max: " + str(maxRead))
-        print("Has detected fire: " + str(fireInRoom))
-        if latestRead > maxRead:
-            maxRead = latestRead
-        if (latestRead > 200) :
-            fireInRoom = True
-
-        if (fireInRoom) :
-            if (maxRead - latestRead > 5) :
-                numQuestionableReads += 1
-                if numQuestionableReads > 10 :
-
-                    turnAndMove(0, 0)
-                   # toggle_extinguisher(True)
-                    print("Extinguish on")
-                    rospy.sleep(10)
-                    #toggle_extinguisher(False)
-                    print("Extinguish off")
-                    break
-
-        oldRead = latestRead
-
+    ### Old extinguish code - without Arduino handling the CO2 shooting
+    # oldRead = -1
+    # latestRead = -1
+    # maxRead = -1
+    #
+    # fireInRoom = False
+    #
+    # numQuestionableReads = 0
+    #
+    # initialTime = rospy.get_time()
+    # while (rospy.get_time() - initialTime < 20) : # for 10 seconds
+    #     latestRead = read_flame()
+    #     ard.flushInput()
+    #     if not latestRead :
+    #         continue
+    #     else :
+    #         latestRead = int(latestRead)
+    #     print("Latest: " + str(latestRead))
+    #     print("Max: " + str(maxRead))
+    #     print("Has detected fire: " + str(fireInRoom))
+    #     if latestRead > maxRead:
+    #         maxRead = latestRead
+    #     if (latestRead > 200) :
+    #         fireInRoom = True
+    #
+    #     if (fireInRoom) :
+    #         if (maxRead - latestRead > 5) :
+    #             numQuestionableReads += 1
+    #             if numQuestionableReads > 10 :
+    #
+    #                 turnAndMove(0, 0)
+    #                # toggle_extinguisher(True)
+    #                 print("Extinguish on")
+    #                 rospy.sleep(10)
+    #                 #toggle_extinguisher(False)
+    #                 print("Extinguish off")
+    #                 break
+    #
+    #     oldRead = latestRead
+    #
 
 
     ##### Align to closest wall might mess with the rest of the code.
     #alignToWall(0)
-    alignToClosestWall()
+    #alignToClosestWall()
     rospy.sleep(1)
     i = 0
-    while (inRoom==1) :
+    while (inRoom) :
         print("getting out of room")
         print(i * 0.05)
         moveForwardDistance(0.05)
@@ -237,7 +278,7 @@ def handleRoom():
 
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
-def runConstant() :
+def moveAround() :
     global updatedDistances, detectOpening, justTurned, inRoom
     while True:
         distances = updatedDistances
