@@ -123,7 +123,7 @@ def listener():
     vels = rospy.Publisher('wheel_vels', robot_vels, queue_size=10)
     rospy.Timer(rospy.Duration(POLL_TIME), poll, oneshot=False)
     rospy.Subscriber("/turn", Float64, turn)
-    rospy.Subscriber("/turnslow", Float64, slowturn)
+    rospy.Subscriber("/turnslow", Float64, turnslow)
     rospy.Subscriber("/drive", Float64, drive)
     hi = rospy.Publisher('motor_listener_listening', String, queue_size=10)
     hi.publish(String('Ready'))
