@@ -35,7 +35,6 @@ ard = None
 
 def read_flame () :
     global ard
-
     read = ard.readline().decode().strip()
     return read
 
@@ -119,7 +118,7 @@ def removeInf(distances) :
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan) :
-    global distances, detectOpening, angle_increment, justTurned, tcs, inRoom, acceptTime
+    global distances, detectOpening, angle_increment, justTurned, tcs, inRoom, acceptTime, ard
     if rospy.get_time()-scan.header.stamp.secs<acceptTime:
         distances = scan.ranges
         print("scanhandler")
@@ -164,12 +163,14 @@ def scanHandler(scan) :
             initialTime = rospy.get_time()
             while (rospy.get_time() - initialTime < 20) : # for 10 seconds
                 latestRead = read_flame()
+                ard.flushInput()
                 if not latestRead :
                     continue
                 else :
                     latestRead = int(latestRead)
                 print("Latest: " + str(latestRead))
                 print("Max: " + str(maxRead))
+                print("Has detected fire: " + str(fireInRoom))
                 if latestRead > maxRead:
                     maxRead = latestRead
                 if (latestRead > 200) :
@@ -178,13 +179,13 @@ def scanHandler(scan) :
                 if (fireInRoom) :
                     if (maxRead - latestRead > 5) :
                         numQuestionableReads += 1
-                        if numQuestionableReads > 20 :
+                        if numQuestionableReads > 10 :
 
                             turnAndMove(0, 0)
-                            toggle_extinguisher(True)
+                           # toggle_extinguisher(True)
                             print("Extinguish on")
                             rospy.sleep(10)
-                            toggle_extinguisher(False)
+                            #toggle_extinguisher(False)
                             print("Extinguish off")
                             break
 
