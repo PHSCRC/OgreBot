@@ -35,7 +35,7 @@ ard = None
 
 def read_flame () :
     global ard
-    
+
     read = ard.readline().decode().strip()
     return read
 
@@ -45,15 +45,20 @@ def toggle_extinguisher(state):
     else:
         GPIO.output(21, GPIO.LOW)
 
-def alignToWall(n) :
+def alignToWall(n):
     global distances, angle_increment, detectOpening
     minDist = distances[n]
     minDistAngle = n
+    # this is bad rn
+    #print(distances)
+    debugAlign = []
     for i in range(n-25, n+25):
+        debugAlign.append(distances[i])
         if distances[i] < minDist:
             minDist = distances[i]
             minDistAngle = i
     print("Moving to " + str(minDistAngle) + "degrees")
+    print(debugAlign)
     if minDistAngle < 0:
         turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
@@ -153,7 +158,7 @@ def scanHandler(scan) :
 
             fireInRoom = False
 
-            
+
             numQuestionableReads = 0
 
             initialTime = rospy.get_time()
@@ -218,11 +223,9 @@ def scanHandler(scan) :
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
 
-            #newDist = distances[0]
             print("Not in room")
             if distances[90]<0.32:
                 print("Turning left")
-                alignToWall(0)
                 turnLeftDegrees(90)
                 rospy.sleep(1)
             elif (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
@@ -230,13 +233,13 @@ def scanHandler(scan) :
                 # Distance will have to be determined through testing
                 turnAndMove(0,0)
                 if(newDist>(sum(detectOpening)/len(detectOpening))+tolerance):
-                    moveForwardDistance(0.1)
+                    moveForwardDistance(0.15)
                     rospy.sleep(1)
                 turnRightDegrees(90)
                 rospy.sleep(1)
                 print("Moving into opening")
                 # Distance will have to be determined through testing
-                moveForwardDistance(0.3)
+                moveForwardDistance(0.4)
                 rospy.sleep(1)
                 justTurned=True
                 turnAndMove(0,0)
