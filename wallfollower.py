@@ -58,7 +58,20 @@ def alignToWall(n) :
         turnRightDegrees(n-minDistAngle)
     rospy.sleep(0.25)
 
-
+def alignToClosestWall() :
+    global distances, angle_increment, detectOpening
+    minIndex = distances.index(min(distances))
+    minDistAngle = n
+    for i in range(n-25, n+25):
+        if distances[i] < minDist:
+            minDist = distances[i]
+            minDistAngle = i
+    print("Moving to " + str(minDistAngle) + "degrees")
+    if minDistAngle < 0:
+        turnLeftDegrees(n-math.fabs(minDistAngle))
+    else:
+        turnRightDegrees(n-minDistAngle)
+    rospy.sleep(0.25)
 
 def colorHandler(data) :
     global inRoom
@@ -111,6 +124,7 @@ def scanHandler(scan) :
     if rospy.get_time()-scan.header.stamp.secs<acceptTime:
         distances = scan.ranges
         print("scanhandler")
+        print("Flame sensor reading: " + str(read_flame()))
 
         angle_increment = scan.angle_increment
 
@@ -151,8 +165,10 @@ def scanHandler(scan) :
                 print("Latest Read " + str(latestRead))
                 turnRightDegrees(30)
                 rospy.sleep(1)
-                latestRead = read_flame()
+                turnAndMove(0, 0)
+                latestRead = int(read_flame())
 
+                print("New read " + str(latestRead))
                 if (latestRead > 100) :
 
                     if (oldRead < latestRead):
@@ -196,26 +212,30 @@ def scanHandler(scan) :
                         rospy.sleep(10)
                         toggle_extinguisher(False)
 
-                    break
 
                 oldRead = latestRead
+                rospy.sleep(0.5)
 
 
 
 
+            alignToWall(0)
+            rospy.sleep(1)
             i = 0
-            while (inRoom==1) :
-                print("getting out of room")
-                print(i * 0.05)
-                moveForwardDistance(0.05)
-                rospy.sleep(0.7)
-                i += 1
+#            while (inRoom==1) :
+#                print("getting out of room")
+#                print(i * 0.05)
+#                moveForwardDistance(0.05)
+#                rospy.sleep(0.7)
+#                i += 1
             moveForwardDistance(0.05)
             rospy.sleep(0.7)
             print("out of room?")
             print(inRoom)
             turnAndMove(0,0)
-            justTurned=True
+            alignToWall(0)
+            rospy.sleep(1)
+#            justTurned=True
             #turnRightDegrees(180)
             #rospy.sleep(0.5)
             #moveForwardDistance(0)

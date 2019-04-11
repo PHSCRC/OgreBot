@@ -111,13 +111,17 @@ def setup() :
 
 def removeInf(distances) :
     d = []
+    count = 0
     for dist in range(len(distances)) :
         #print(distances[dist])
         if (not math.isinf(distances[dist])) :
             d.append(distances[dist])
 
         else :
+            count += 1
+            print(dist)
             d.append(-1)
+    print("Number of infinities removed: " + str(count)) 
     return d
 
 
