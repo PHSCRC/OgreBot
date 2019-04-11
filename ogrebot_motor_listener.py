@@ -54,8 +54,8 @@ def turnslow(rad):
     my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
     speed = my_drive.axis0.controller.config.vel_limit
-    my_drive.axis0.controller.config.vel_limit = 1000
-    my_drive.axis1.controller.config.vel_limit = 1000
+    my_drive.axis0.controller.config.vel_limit = 2000
+    my_drive.axis1.controller.config.vel_limit = 2000
     countsToMove=rad.data*(ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
     print("rad", rad.data)
     print("counts", countsToMove)

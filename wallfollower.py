@@ -104,7 +104,6 @@ def setup() :
 def removeInf(distances) :
     d = []
     for dist in range(len(distances)) :
-        #print(distances[dist])
         if (not math.isinf(distances[dist])) :
             d.append(distances[dist])
 
@@ -154,8 +153,11 @@ def scanHandler(scan) :
 
             fireInRoom = False
 
+            
+            numQuestionableReads = 0
+
             initialTime = rospy.get_time()
-            while (rospy.get_time() - initialTime < 10) : # for 10 seconds
+            while (rospy.get_time() - initialTime < 20) : # for 10 seconds
                 latestRead = read_flame()
                 if not latestRead :
                     continue
@@ -165,107 +167,47 @@ def scanHandler(scan) :
                 print("Max: " + str(maxRead))
                 if latestRead > maxRead:
                     maxRead = latestRead
-                if (latestRead > 100) :
+                if (latestRead > 200) :
                     fireInRoom = True
 
                 if (fireInRoom) :
-                    if (maxRead - latestRead > 30) :
-                        turnAndMove(0, 0)
-                        toggle_extinguisher(True)
-                        print("Extinguish on")
-                        rospy.sleep(10)
-                        toggle_extinguisher(False)
-                        print("Extinguish off")
-                        break
+                    if (maxRead - latestRead > 5) :
+                        numQuestionableReads += 1
+                        if numQuestionableReads > 20 :
+
+                            turnAndMove(0, 0)
+                            toggle_extinguisher(True)
+                            print("Extinguish on")
+                            rospy.sleep(10)
+                            toggle_extinguisher(False)
+                            print("Extinguish off")
+                            break
 
                 oldRead = latestRead
 
-#            turnRightDegrees(360)
-            # turnLeftDegrees(180)
-            # rospy.sleep(1)
-            #
-            # print("After turn")
-            # for i2 in range(0, 12):
-            #     print("Sweeping room " + str(i2))
-            #     print("Latest Read " + str(latestRead))
-            #     turnRightDegrees(30)
-            #     rospy.sleep(1)
-            #     turnAndMove(0, 0)
-            #     latestRead = int(read_flame())
-            #
-            #     print("New read " + str(latestRead))
-            #     if (latestRead > 100) :
-            #
-            #         if (oldRead < latestRead):
-            #             while (oldRead < latestRead) :
-            #                 turnRightDegrees(30)
-            #                 rospy.sleep(1)
-            #                 oldRead = latestRead
-            #                 latestRead = read_flame()
-            #
-            #             oldRead, latestRead = latestRead, oldRead
-            #             while (oldRead < latestRead) :
-            #                 turnLeftDegrees(5)
-            #                 rospy.sleep(1)
-            #                 oldRead = latestRead
-            #                 latestRead = read_flame()
-            #
-            #             turnRightDegrees(5) # ?
-            #             toggle_extinguisher(True)
-            #             rospy.sleep(10)
-            #             toggle_extinguisher(False)
-            #
-            #
-            #         else:
-            #             oldRead, latestRead = latestRead, oldRead
-            #             while (oldRead < latestRead) :
-            #                 turnLeftDegrees(30)
-            #                 rospy.sleep(1)
-            #                 oldRead = latestRead
-            #                 latestRead = read_flame()
-            #
-            #
-            #             oldRead, latestRead = latestRead, oldRead
-            #             while (oldRead < latestRead) :
-            #                 turnRightDegrees(5)
-            #                 rospy.sleep(1)
-            #                 oldRead = latestRead
-            #                 latestRead = read_flame()
-            #
-            #             turnLeftDegrees(5) # ?
-            #             toggle_extinguisher(True)
-            #             rospy.sleep(10)
-            #             toggle_extinguisher(False)
-            #
-            #
-            #     oldRead = latestRead
-            #     rospy.sleep(0.5)
-
-
-
             ##### Align to closest wall might mess with the rest of the code.
             #alignToWall(0)
-            alignToClosestWall()
+            #alignToClosestWall()
             rospy.sleep(1)
             i = 0
-#            while (inRoom==1) :
-#                print("getting out of room")
-#                print(i * 0.05)
-#                moveForwardDistance(0.05)
-#                rospy.sleep(0.7)
-#                i += 1
+            while (inRoom==1) :
+                print("getting out of room")
+                print(i * 0.05)
+                moveForwardDistance(0.05)
+                rospy.sleep(0.7)
+                i += 1
             moveForwardDistance(0.05)
             rospy.sleep(0.7)
             print("out of room?")
             print(inRoom)
             turnAndMove(0,0)
-            alignToWall(0)
-            rospy.sleep(1)
+#            alignToWall(0)
 #            justTurned=True
             #turnRightDegrees(180)
             #rospy.sleep(0.5)
             #moveForwardDistance(0)
         elif(justTurned):
+            print("In justTurned")
             if(distances[0]<distances[180]):
                 alignToWall(0)
             else:
@@ -280,6 +222,7 @@ def scanHandler(scan) :
             print("Not in room")
             if distances[90]<0.32:
                 print("Turning left")
+                alignToWall(0)
                 turnLeftDegrees(90)
                 rospy.sleep(1)
             elif (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
@@ -310,8 +253,6 @@ def scanHandler(scan) :
             if (len(detectOpening) > tSize) :
                 detectOpening.pop(0)
 
-        # This aligns regularly
-        #print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
