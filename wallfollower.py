@@ -19,11 +19,10 @@ vel = None
 
 tolerance = .30
 tSize = 5
-distances = []
+updatedDistances = []
 detectOpening = [];
 forwardSpeed = 0.1 #m/s
 pGain = -0.000
-acceptTime = 1
 newDist = None
 justTurned = False
 soundStart = False
@@ -35,8 +34,7 @@ ard = None
 
 def read_flame () :
     global ard
-    read = ard.readline().decode().strip()
-    return read
+    return ard.readline().decode().strip()
 
 def toggle_extinguisher(state):
     if(state):
@@ -44,20 +42,15 @@ def toggle_extinguisher(state):
     else:
         GPIO.output(21, GPIO.LOW)
 
-def alignToWall(n):
+def alignToWall(n) :
     global distances, angle_increment, detectOpening
     minDist = distances[n]
     minDistAngle = n
-    # this is bad rn
-    #print(distances)
-    debugAlign = []
     for i in range(n-25, n+25):
-        debugAlign.append(distances[i])
         if distances[i] < minDist:
             minDist = distances[i]
             minDistAngle = i
     print("Moving to " + str(minDistAngle) + "degrees")
-    print(debugAlign)
     if minDistAngle < 0:
         turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
@@ -82,7 +75,7 @@ def colorHandler(data) :
 def setup() :
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(21, GPIO.OUT)
-    global distances, angle_increment, turn, vel, drive, fireReading, ard, turnslow
+    global distances, angle_increment, turn, vel, drive, fireReading, ard
     for port, desc, hwid in sorted(ports):
         print("{}: {} [{}]".format(port, desc, hwid))
         if 'USB2.0-Serial' in desc:
@@ -100,7 +93,6 @@ def setup() :
     rospy.Subscriber("/color", Bool, colorHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
-    turnslow = rospy.Publisher('turnslow', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
     rospy.spin()
@@ -108,6 +100,7 @@ def setup() :
 def removeInf(distances) :
     d = []
     for dist in range(len(distances)) :
+        #print(distances[dist])
         if (not math.isinf(distances[dist])) :
             d.append(distances[dist])
 
@@ -116,17 +109,14 @@ def removeInf(distances) :
     return d
 
 
-# gives list of distances starting from angle 0 to 360, at increment of angle_increment
-def scanHandler(scan) :
-    global distances, detectOpening, angle_increment, justTurned, tcs, inRoom, acceptTime, ard
-    if rospy.get_time()-scan.header.stamp.secs<acceptTime:
+def scanHandler(scan):
+    global updatedDistances
+    if rospy.get_time()-scan.header.stamp.secs<0.5:
         distances = scan.ranges
-        print("scanhandler")
-        print("Flame sensor reading: " + str(read_flame()))
 
         angle_increment = scan.angle_increment
 
-        distances = removeInf(distances)
+        updatedDistances = removeInf(distances)
 
         if not len(detectOpening) or justTurned:
             detectOpening = [distances[0], distances[0], distances[0]]
@@ -136,84 +126,116 @@ def scanHandler(scan) :
         if (distances[0] != 1000):
             newDist = distances[0]
 
-        r,g,b,c = tcs.get_raw_data()
+def inRoomFunc():
+    global inRoom
+    print ("Got White")
+    turnAndMove(0, 0)
+    moveForward(0.2)
+    rospy.sleep(1)
 
+
+    print("Fire sweep")
+#            turnRightDegrees(360)
+    turnLeftDegrees(180)
+    rospy.sleep(1)
+
+    oldRead = read_flame()
+    latestRead = 0
+
+    print("After turn")
+    for i2 in range(0, 12):
+        print("Sweeping room " + str(i2))
+        print("Latest Read " + str(latestRead))
+        turnRightDegrees(30)
+        rospy.sleep(1)
+        turnAndMove(0, 0)
+        latestRead = int(read_flame())
+
+        print("New read " + str(latestRead))
+        if (latestRead > 100) :
+
+            if (oldRead < latestRead):
+                while (oldRead < latestRead) :
+                    turnRightDegrees(30)
+                    rospy.sleep(1)
+                    oldRead = latestRead
+                    latestRead = read_flame()
+
+                oldRead, latestRead = latestRead, oldRead
+                while (oldRead < latestRead) :
+                    turnLeftDegrees(5)
+                    rospy.sleep(1)
+                    oldRead = latestRead
+                    latestRead = read_flame()
+
+                turnRightDegrees(5) # ?
+                toggle_extinguisher(True)
+                rospy.sleep(10)
+                toggle_extinguisher(False)
+
+
+            else:
+                oldRead, latestRead = latestRead, oldRead
+                while (oldRead < latestRead) :
+                    turnLeftDegrees(30)
+                    rospy.sleep(1)
+                    oldRead = latestRead
+                    latestRead = read_flame()
+
+
+                oldRead, latestRead = latestRead, oldRead
+                while (oldRead < latestRead) :
+                    turnRightDegrees(5)
+                    rospy.sleep(1)
+                    oldRead = latestRead
+                    latestRead = read_flame()
+
+                turnLeftDegrees(5) # ?
+                toggle_extinguisher(True)
+                rospy.sleep(10)
+                toggle_extinguisher(False)
+
+
+        oldRead = latestRead
+        rospy.sleep(0.5)
+
+
+
+    ##### Align to closest wall might mess with the rest of the code.
+    #alignToWall(0)e
+    alignToClosestWall()
+    rospy.sleep(1)
+    i = 0
+    while (inRoom==1) :
+        print("getting out of room")
+        print(i * 0.05)
+        moveForwardDistance(0.05)
+        rospy.sleep(0.7)
+        i += 1
+    moveForwardDistance(0.05)
+    rospy.sleep(0.7)
+
+#            justTurned=True
+    #turnRightDegrees(180)
+    #rospy.sleep(0.5)
+    #moveForwardDistance(0)
+
+
+# gives list of distances starting from angle 0 to 360, at increment of angle_increment
+def runConstant() :
+    global updatedDistances, detectOpening, justTurned, inRoom
+    while True:
+        distances = updatedDistances
         # For the room detection
         print('inRoom', inRoom)
         if (inRoom) :#r+g+b>300
-
-
-            print ("Got White")
-            turnAndMove(0, 0)
-            moveForward(0.2)
-            rospy.sleep(1)
-
-
-            print("Fire sweep")
-            oldRead = -1
-            latestRead = -1
-            slowturnRightDegrees(540)
-            maxRead = -1
-
-            fireInRoom = False
-
-
-            numQuestionableReads = 0
-
-            initialTime = rospy.get_time()
-            while (rospy.get_time() - initialTime < 20) : # for 10 seconds
-                latestRead = read_flame()
-                ard.flushInput()
-                if not latestRead :
-                    continue
-                else :
-                    latestRead = int(latestRead)
-                print("Latest: " + str(latestRead))
-                print("Max: " + str(maxRead))
-                print("Has detected fire: " + str(fireInRoom))
-                if latestRead > maxRead:
-                    maxRead = latestRead
-                if (latestRead > 200) :
-                    fireInRoom = True
-
-                if (fireInRoom) :
-                    if (maxRead - latestRead > 5) :
-                        numQuestionableReads += 1
-                        if numQuestionableReads > 10 :
-
-                            turnAndMove(0, 0)
-                           # toggle_extinguisher(True)
-                            print("Extinguish on")
-                            rospy.sleep(10)
-                            #toggle_extinguisher(False)
-                            print("Extinguish off")
-                            break
-
-                oldRead = latestRead
-
-            ##### Align to closest wall might mess with the rest of the code.
-            #alignToWall(0)
-            #alignToClosestWall()
-            rospy.sleep(1)
-            i = 0
-            while (inRoom==1) :
-                print("getting out of room")
-                print(i * 0.05)
-                moveForwardDistance(0.05)
-                rospy.sleep(0.7)
-                i += 1
-            moveForwardDistance(0.05)
-            rospy.sleep(0.7)
-            print("out of room?")
-            print(inRoom)
-            turnAndMove(0,0)
-#            alignToWall(0)
-#            justTurned=True
-            #turnRightDegrees(180)
-            #rospy.sleep(0.5)
-            #moveForwardDistance(0)
+                inRoomFunc()
+                print("out of room?")
+                print(inRoom)
+                turnAndMove(0,0)
+                alignToWall(0)
+                rospy.sleep(1)
         elif(justTurned):
-            print("In justTurned")
             if(distances[0]<distances[180]):
                 alignToWall(0)
             else:
@@ -224,6 +246,7 @@ def scanHandler(scan) :
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
 
+            #newDist = distances[0]
             print("Not in room")
             if distances[90]<0.32:
                 print("Turning left")
@@ -234,13 +257,13 @@ def scanHandler(scan) :
                 # Distance will have to be determined through testing
                 turnAndMove(0,0)
                 if(newDist>(sum(detectOpening)/len(detectOpening))+tolerance):
-                    moveForwardDistance(0.15)
+                    moveForwardDistance(0.1)
                     rospy.sleep(1)
                 turnRightDegrees(90)
                 rospy.sleep(1)
                 print("Moving into opening")
                 # Distance will have to be determined through testing
-                moveForwardDistance(0.4)
+                moveForwardDistance(0.3)
                 rospy.sleep(1)
                 justTurned=True
                 turnAndMove(0,0)
@@ -257,6 +280,8 @@ def scanHandler(scan) :
             if (len(detectOpening) > tSize) :
                 detectOpening.pop(0)
 
+        # This aligns regularly
+        #print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
@@ -274,19 +299,6 @@ def turnRightDegrees(degrees):
     global turn
     radians = degrees * (math.pi/180)
     turn.publish(Float64(radians))
-    #
-
-# Turns left at 1 radians (? degrees) per second
-def slowturnLeftDegrees(degrees):
-    global turnslow
-    radians = - degrees * (math.pi / (180))
-    turnslow.publish(Float64(radians))
-
-# Turns right at 1 radians (? degrees) per second
-def slowturnRightDegrees(degrees):
-    global turnslow
-    radians = degrees * (math.pi/180)
-    turnslow.publish(Float64(radians))
     #
 
 #SPEED IS IN M/S
