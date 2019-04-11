@@ -76,7 +76,7 @@ def colorHandler(data) :
 def setup() :
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(21, GPIO.OUT)
-    global distances, angle_increment, turn, vel, drive, fireReading, ard
+    global distances, angle_increment, turn, vel, drive, fireReading, ard, turnslow
     for port, desc, hwid in sorted(ports):
         print("{}: {} [{}]".format(port, desc, hwid))
         if 'USB2.0-Serial' in desc:
@@ -94,6 +94,7 @@ def setup() :
     rospy.Subscriber("/color", Bool, colorHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
+    turnslow = rospy.Publisher('turnslow', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
     rospy.spin()
@@ -296,6 +297,19 @@ def turnRightDegrees(degrees):
     global turn
     radians = degrees * (math.pi/180)
     turn.publish(Float64(radians))
+    #
+
+# Turns left at 1 radians (? degrees) per second
+def slowturnLeftDegrees(degrees):
+    global turnslow
+    radians = - degrees * (math.pi / (180))
+    turnslow.publish(Float64(radians))
+
+# Turns right at 1 radians (? degrees) per second
+def slowturnRightDegrees(degrees):
+    global turnslow
+    radians = degrees * (math.pi/180)
+    turnslow.publish(Float64(radians))
     #
 
 #SPEED IS IN M/S
