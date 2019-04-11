@@ -35,7 +35,9 @@ ard = None
 
 def read_flame () :
     global ard
-    return ard.readline().decode().strip()
+    
+    read = ard.readline().decode().strip()
+    return read
 
 def toggle_extinguisher(state):
     if(state):
@@ -145,7 +147,7 @@ def scanHandler(scan) :
 
 
             print("Fire sweep")
-            oldRead = read_flame()
+            oldRead = -1
             latestRead = -1
             slowturnRightDegrees(540)
             maxRead = -1
@@ -155,16 +157,26 @@ def scanHandler(scan) :
             initialTime = rospy.get_time()
             while (rospy.get_time() - initialTime < 10) : # for 10 seconds
                 latestRead = read_flame()
+                if not latestRead :
+                    continue
+                else :
+                    latestRead = int(latestRead)
+                print("Latest: " + str(latestRead))
+                print("Max: " + str(maxRead))
                 if latestRead > maxRead:
                     maxRead = latestRead
                 if (latestRead > 100) :
                     fireInRoom = True
 
                 if (fireInRoom) :
-                    if (maxRead - latestRead > 5) :
+                    if (maxRead - latestRead > 30) :
+                        turnAndMove(0, 0)
                         toggle_extinguisher(True)
+                        print("Extinguish on")
                         rospy.sleep(10)
                         toggle_extinguisher(False)
+                        print("Extinguish off")
+                        break
 
                 oldRead = latestRead
 
