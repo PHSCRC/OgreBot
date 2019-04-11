@@ -61,16 +61,8 @@ def alignToWall(n) :
 def alignToClosestWall() :
     global distances, angle_increment, detectOpening
     minIndex = distances.index(min(distances))
-    minDistAngle = n
-    for i in range(n-25, n+25):
-        if distances[i] < minDist:
-            minDist = distances[i]
-            minDistAngle = i
-    print("Moving to " + str(minDistAngle) + "degrees")
-    if minDistAngle < 0:
-        turnLeftDegrees(n-math.fabs(minDistAngle))
-    else:
-        turnRightDegrees(n-minDistAngle)
+    print("Moving to " + str(minIndex) + "degrees")
+    turnLeftDegrees(minIndex)
     rospy.sleep(0.25)
 
 def colorHandler(data) :
@@ -137,7 +129,7 @@ def scanHandler(scan) :
         newDist = 0
         if (distances[0] != 1000):
             newDist = distances[0]
-            
+
         r,g,b,c = tcs.get_raw_data()
 
         # For the room detection
@@ -184,7 +176,7 @@ def scanHandler(scan) :
                             rospy.sleep(1)
                             oldRead = latestRead
                             latestRead = read_flame()
-                            
+
                         turnRightDegrees(5) # ?
                         toggle_extinguisher(True)
                         rospy.sleep(10)
@@ -218,8 +210,9 @@ def scanHandler(scan) :
 
 
 
-
-            alignToWall(0)
+            ##### Align to closest wall might mess with the rest of the code.
+            #alignToWall(0)
+            alignToClosestWall()
             rospy.sleep(1)
             i = 0
 #            while (inRoom==1) :
@@ -249,7 +242,7 @@ def scanHandler(scan) :
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
-            
+
             #newDist = distances[0]
             print("Not in room")
             if distances[90]<0.32:
