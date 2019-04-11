@@ -155,7 +155,8 @@ def scanHandler(scan) :
             initialTime = rospy.get_time()
             while (rospy.get_time() - initialTime < 10) : # for 10 seconds
                 latestRead = read_flame()
-                maxRead = latestRead if latestRead > maxRead
+                if latestRead > maxRead:
+                    maxRead = latestRead
                 if (latestRead > 100) :
                     fireInRoom = True
 
