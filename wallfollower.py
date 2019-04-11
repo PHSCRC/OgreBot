@@ -139,10 +139,7 @@ def scanHandler(scan):
             #rospy.sleep(0.5)
             #moveForwardDistance(0)
         elif(justTurned):
-            if(distances[0]<distances[180]):
-                alignToWall(0)
-            else:
-                alignToWall(180)
+            alignToWall(0)
             rospy.sleep(0.7)
             inRoom=0
             justTurned=False
