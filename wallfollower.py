@@ -145,69 +145,88 @@ def scanHandler(scan) :
 
 
             print("Fire sweep")
-#            turnRightDegrees(360)
-            turnLeftDegrees(180)
-            rospy.sleep(1)
-
             oldRead = read_flame()
-            latestRead = 0
+            latestRead = -1
+            slowturnRightDegrees(540)
+            maxRead = -1
 
-            print("After turn")
-            for i2 in range(0, 12):
-                print("Sweeping room " + str(i2))
-                print("Latest Read " + str(latestRead))
-                turnRightDegrees(30)
-                rospy.sleep(1)
-                turnAndMove(0, 0)
-                latestRead = int(read_flame())
+            fireInRoom = False
 
-                print("New read " + str(latestRead))
+            initialTime = rospy.get_time()
+            while (rospy.get_time() - initialTime < 10) : # for 10 seconds
+                latestRead = read_flame()
+                maxRead = latestRead if latestRead > maxRead
                 if (latestRead > 100) :
+                    fireInRoom = True
 
-                    if (oldRead < latestRead):
-                        while (oldRead < latestRead) :
-                            turnRightDegrees(30)
-                            rospy.sleep(1)
-                            oldRead = latestRead
-                            latestRead = read_flame()
-
-                        oldRead, latestRead = latestRead, oldRead
-                        while (oldRead < latestRead) :
-                            turnLeftDegrees(5)
-                            rospy.sleep(1)
-                            oldRead = latestRead
-                            latestRead = read_flame()
-
-                        turnRightDegrees(5) # ?
+                if (fireInRoom) :
+                    if (maxRead - latestRead > 5) :
                         toggle_extinguisher(True)
                         rospy.sleep(10)
                         toggle_extinguisher(False)
-
-
-                    else:
-                        oldRead, latestRead = latestRead, oldRead
-                        while (oldRead < latestRead) :
-                            turnLeftDegrees(30)
-                            rospy.sleep(1)
-                            oldRead = latestRead
-                            latestRead = read_flame()
-
-
-                        oldRead, latestRead = latestRead, oldRead
-                        while (oldRead < latestRead) :
-                            turnRightDegrees(5)
-                            rospy.sleep(1)
-                            oldRead = latestRead
-                            latestRead = read_flame()
-
-                        turnLeftDegrees(5) # ?
-                        toggle_extinguisher(True)
-                        rospy.sleep(10)
-                        toggle_extinguisher(False)
-
 
                 oldRead = latestRead
-                rospy.sleep(0.5)
+
+#            turnRightDegrees(360)
+            # turnLeftDegrees(180)
+            # rospy.sleep(1)
+            #
+            # print("After turn")
+            # for i2 in range(0, 12):
+            #     print("Sweeping room " + str(i2))
+            #     print("Latest Read " + str(latestRead))
+            #     turnRightDegrees(30)
+            #     rospy.sleep(1)
+            #     turnAndMove(0, 0)
+            #     latestRead = int(read_flame())
+            #
+            #     print("New read " + str(latestRead))
+            #     if (latestRead > 100) :
+            #
+            #         if (oldRead < latestRead):
+            #             while (oldRead < latestRead) :
+            #                 turnRightDegrees(30)
+            #                 rospy.sleep(1)
+            #                 oldRead = latestRead
+            #                 latestRead = read_flame()
+            #
+            #             oldRead, latestRead = latestRead, oldRead
+            #             while (oldRead < latestRead) :
+            #                 turnLeftDegrees(5)
+            #                 rospy.sleep(1)
+            #                 oldRead = latestRead
+            #                 latestRead = read_flame()
+            #
+            #             turnRightDegrees(5) # ?
+            #             toggle_extinguisher(True)
+            #             rospy.sleep(10)
+            #             toggle_extinguisher(False)
+            #
+            #
+            #         else:
+            #             oldRead, latestRead = latestRead, oldRead
+            #             while (oldRead < latestRead) :
+            #                 turnLeftDegrees(30)
+            #                 rospy.sleep(1)
+            #                 oldRead = latestRead
+            #                 latestRead = read_flame()
+            #
+            #
+            #             oldRead, latestRead = latestRead, oldRead
+            #             while (oldRead < latestRead) :
+            #                 turnRightDegrees(5)
+            #                 rospy.sleep(1)
+            #                 oldRead = latestRead
+            #                 latestRead = read_flame()
+            #
+            #             turnLeftDegrees(5) # ?
+            #             toggle_extinguisher(True)
+            #             rospy.sleep(10)
+            #             toggle_extinguisher(False)
+            #
+            #
+            #     oldRead = latestRead
+            #     rospy.sleep(0.5)
 
 
 
