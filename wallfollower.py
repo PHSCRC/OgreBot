@@ -23,7 +23,7 @@ updatedDistances = []
 detectOpening = [];
 forwardSpeed = 0.1 #m/s
 pGain = -0.000
-newDist = None
+newDist = 0
 justTurned = False
 soundStart = False
 tcs = Adafruit_TCS34725.TCS34725()
@@ -175,7 +175,7 @@ def setup() :
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
     alignToWallExp(0, 40)
-    #moveAround()
+    moveAround()
     rospy.spin()
 
 def removeInf(distances) :
@@ -191,7 +191,7 @@ def removeInf(distances) :
 
 
 def scanHandler(scan):
-    global updatedDistances, detectOpening
+    global updatedDistances, detectOpening, newDist
     if rospy.get_time()-scan.header.stamp.secs<0.5:
         distances = scan.ranges
 
@@ -200,12 +200,12 @@ def scanHandler(scan):
         updatedDistances = removeInf(distances)
 
         if not len(detectOpening) or justTurned:
-            detectOpening = [distances[0], distances[0], distances[0]]
+            detectOpening = [updatedDistances[0], updatedDistances[0], updatedDistances[0]]
 
         # Distance from right wall, 1000 = inf right now
         newDist = 0
         if (distances[0] != 1000):
-            newDist = distances[0]
+            newDist = updatedDistances[0]
 
 def handleRoom():
     global inRoom
@@ -284,7 +284,7 @@ def handleRoom():
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def moveAround() :
-    global updatedDistances, detectOpening, justTurned, inRoom
+    global updatedDistances, detectOpening, justTurned, inRoom, tolerance, newDist
     while True:
         distances = updatedDistances
         # For the room detection
@@ -294,10 +294,10 @@ def moveAround() :
                 print("out of room?")
                 print(inRoom)
                 turnAndMove(0,0)
-                alignToWall(0)
+                alignToWallExp(0, 40)
                 rospy.sleep(1)
         elif(justTurned):
-            alignToWall(0)
+            alignToWallExp(0, 40)
             rospy.sleep(0.7)
             justTurned=False
         else:
@@ -337,7 +337,7 @@ def moveAround() :
             # To keep it from overflowing memory
             if (len(detectOpening) > tSize) :
                 detectOpening.pop(0)
-
+    rospy.sleep(0.5)
         # This aligns regularly
         #print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
 
