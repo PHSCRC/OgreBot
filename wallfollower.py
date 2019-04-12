@@ -60,31 +60,31 @@ def alignToWall(n) :
 
 def infToAdj () :
     # For each infinity, searches backwards and forwards for nearest found value and sets it to that value
-    global distances
+    global updatedDistances
+    distances = updatedDistances
 
     adj = []
     for i in range(0, len(distances)) :
-        if not math.isinf(distances[i]) :
+        if distances[i] != 1000 : #not math.isinf(distances[i]) :
             adj.append(distances[i])
 
         else :
             j = 0
-            while (math.isinf(distances[(i + j) % 360])) and (math.isinf(distances[i - j]) :
+            while distances[(i + j) % 360] == 1000 and distances[i - j] == 1000 :  #(math.isinf(distances[(i + j) % 360])) and (math.isinf(distances[i - j])) :
                 j += 1
-            adj.append([distances[(i + j) % 360], distances[i - j]])
+            adj.append(min(distances[(i + j) % 360], distances[i - j]))
 
     return adj
 
 
 def alignToWallExp(n, coneSize) :
     print("EXPERIMENTAL ALIGN TO WALL")
-    global distances, angle_increment, detectOpening
 
     dist = infToAdj()
-    minDistSum = 1000 # Arbitrary high value to find mins
+    minDistSum = 10000 # Arbitrary high value to find mins
     minDistAngle = 0
 
-    numValuesTaken = 5
+    numValuesTaken = 7
     debugList = []
     for i in range(n - coneSize, n + coneSize - numValuesTaken) :
         debugList.append(dist[i])
@@ -97,19 +97,20 @@ def alignToWallExp(n, coneSize) :
             minDistAngle = i + numValuesTaken // 2
 
     print("Moving to " + str(minDistAngle) + "degrees")
-
+    
+    wheelOffset = 2
+    minDistAngle += wheelOffset
     if minDistAngle < 0:
         turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
         turnRightDegrees(n-minDistAngle)
-
+    print(debugList)
     rospy.sleep(0.5)
 
 
 
 def alignToClosestWallExp() :
     print("EXPERIMENTAL ALIGN TO CLOSEST WALL")
-    global distances, angle_increment, detectOpening
 
     dist = infToAdj()
     minDistSum = 1000 # Arbitrary high value to find mins
@@ -157,12 +158,14 @@ def setup() :
         if 'USB2.0-Serial' in desc:
             print('arduino connected')
             ard = serial.Serial(port, 9600, timeout=0)
+    '''
             while True:
                 curr = ard.readline().decode().strip()
 #                print(curr)
                 if curr == 'sound':
                     print('got sound')
                     break
+    '''
     time.sleep(1)
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
@@ -171,7 +174,7 @@ def setup() :
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
-    alignToWallExp(0)
+    alignToWallExp(0, 40)
     #moveAround()
     rospy.spin()
 
@@ -188,7 +191,7 @@ def removeInf(distances) :
 
 
 def scanHandler(scan):
-    global updatedDistances
+    global updatedDistances, detectOpening
     if rospy.get_time()-scan.header.stamp.secs<0.5:
         distances = scan.ranges
 
@@ -294,10 +297,7 @@ def moveAround() :
                 alignToWall(0)
                 rospy.sleep(1)
         elif(justTurned):
-            if(distances[0]<distances[180]):
-                alignToWall(0)
-            else:
-                alignToWall(180)
+            alignToWall(0)
             rospy.sleep(0.7)
             justTurned=False
         else:
