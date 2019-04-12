@@ -97,7 +97,7 @@ def alignToWallExp(n, coneSize) :
             minDistAngle = i + numValuesTaken // 2
 
     print("Moving to " + str(minDistAngle) + "degrees")
-    
+
     wheelOffset = 2
     minDistAngle += wheelOffset
     if minDistAngle < 0:
@@ -158,14 +158,12 @@ def setup() :
         if 'USB2.0-Serial' in desc:
             print('arduino connected')
             ard = serial.Serial(port, 9600, timeout=0)
-    '''
             while True:
                 curr = ard.readline().decode().strip()
 #                print(curr)
                 if curr == 'sound':
                     print('got sound')
                     break
-    '''
     time.sleep(1)
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
@@ -188,6 +186,20 @@ def removeInf(distances) :
         else :
             d.append(1000)
     return d
+
+def planeDistance (angle) :
+    global distances
+    hypo = distances[angle]
+    if hypo != -1 :
+        x = hypo * math.cos(angle * angle_increment) # convert to radians
+        y = hypo * math.sin(angle * angle_increment)
+
+    else :
+        x = -1
+        y = -1
+
+    return [x, y]
+    
 
 
 def scanHandler(scan):
