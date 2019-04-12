@@ -85,8 +85,9 @@ def alignToWallExp(n, coneSize) :
     minDistAngle = 0
 
     numValuesTaken = 5
+    debugList = []
     for i in range(n - coneSize, n + coneSize - numValuesTaken) :
-
+        debugList.append(dist[i])
         sum = 0
         for j in range(0, numValuesTaken) :
             sum += dist[i + j]
@@ -170,7 +171,8 @@ def setup() :
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
-    moveAround()
+    alignToWallExp(0)
+    #moveAround()
     rospy.spin()
 
 def removeInf(distances) :
