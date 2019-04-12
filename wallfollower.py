@@ -141,6 +141,61 @@ def alignToClosestWall() :
     turnLeftDegrees(minIndex)
     rospy.sleep(0.25)
 
+
+
+def alignGood () :
+
+    dist = infToAdj()
+    minDistSum = 10000 # Arbitrary high value to find mins
+    minDistAngle = 0
+
+    numValuesTaken = 7
+
+
+    debugList = []
+    for i in range(0 - coneSize, 0 + coneSize - numValuesTaken) :
+        debugList.append(dist[i])
+        sum = 0
+        for j in range(0, numValuesTaken) :
+            sum += dist[i + j]
+
+        if sum < minDistSum :
+            minDistSum = sum
+            minDistAngle = i + numValuesTaken // 2
+
+    rightDegree = minDistAngle
+    minDistAngle = 180
+
+    for i in range(180 - coneSize, 180 + coneSize - numValuesTaken) :
+        debugList.append(dist[i])
+        sum = 0
+        for j in range(0, numValuesTaken) :
+            sum += dist[i + j]
+
+        if sum < minDistSum :
+            minDistSum = sum
+            minDistAngle = i + numValuesTaken // 2
+
+    rightDiff = 0 - rightDegree
+    leftDiff = 180 - leftDegree
+
+    averageDiff = (rightDiff + leftDiff) / 2
+
+    if averageDiff < 0 :
+        turnLeftDegrees(averageDiff)
+
+    else :
+        turnRightDegrees(averageDiff)
+
+
+    rospy.sleep(1)
+
+
+
+
+
+
+
 def colorHandler(data) :
     global inRoom
     if (data.data) :
@@ -199,7 +254,7 @@ def planeDistance (angle) :
         y = -1
 
     return [x, y]
-    
+
 
 
 def scanHandler(scan):
@@ -294,7 +349,6 @@ def handleRoom():
     #moveForwardDistance(0)
 
 
-# gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def moveAround() :
     global updatedDistances, detectOpening, justTurned, inRoom, tolerance, newDist
     while True:
