@@ -61,7 +61,7 @@ def alignToWall(n) :
 def infToAdj () :
     # For each infinity, searches backwards and forwards for nearest found value and sets it to that value
     global updatedDistances
-    distances = updatedDistances
+    distances = removeInf(updatedDistances)
 
     adj = []
     for i in range(0, len(distances)) :
@@ -192,13 +192,12 @@ def removeInf(distances) :
 
 def scanHandler(scan):
     global updatedDistances, detectOpening, newDist
-    if rospy.get_time()-scan.header.stamp.secs<0.5:
+    if rospy.get_time()-scan.header.stamp.secs< 1:
         distances = scan.ranges
 
         angle_increment = scan.angle_increment
 
         updatedDistances = removeInf(distances)
-
         if not len(detectOpening) or justTurned:
             detectOpening = [updatedDistances[0], updatedDistances[0], updatedDistances[0]]
 
@@ -285,6 +284,8 @@ def handleRoom():
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def moveAround() :
     global updatedDistances, detectOpening, justTurned, inRoom, tolerance, newDist
+    print("newDist: " + str(newDist))
+    print("detectOpening: " + str(detectOpening))
     while True:
         distances = updatedDistances
         # For the room detection
