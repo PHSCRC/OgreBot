@@ -97,7 +97,7 @@ def alignToWallExp(n, coneSize) :
             minDistAngle = i + numValuesTaken // 2
 
     print("Moving to " + str(minDistAngle) + "degrees")
-    
+
     wheelOffset = 2
     minDistAngle += wheelOffset
     if minDistAngle < 0:
@@ -141,6 +141,61 @@ def alignToClosestWall() :
     turnLeftDegrees(minIndex)
     rospy.sleep(0.25)
 
+
+
+def alignGood () :
+
+    dist = infToAdj()
+    minDistSum = 10000 # Arbitrary high value to find mins
+    minDistAngle = 0
+
+    numValuesTaken = 7
+
+
+    debugList = []
+    for i in range(0 - coneSize, 0 + coneSize - numValuesTaken) :
+        debugList.append(dist[i])
+        sum = 0
+        for j in range(0, numValuesTaken) :
+            sum += dist[i + j]
+
+        if sum < minDistSum :
+            minDistSum = sum
+            minDistAngle = i + numValuesTaken // 2
+
+    rightDegree = minDistAngle
+    minDistAngle = 180
+
+    for i in range(180 - coneSize, 180 + coneSize - numValuesTaken) :
+        debugList.append(dist[i])
+        sum = 0
+        for j in range(0, numValuesTaken) :
+            sum += dist[i + j]
+
+        if sum < minDistSum :
+            minDistSum = sum
+            minDistAngle = i + numValuesTaken // 2
+
+    rightDiff = 0 - rightDegree
+    leftDiff = 180 - leftDegree
+
+    averageDiff = (rightDiff + leftDiff) / 2
+
+    if averageDiff < 0 :
+        turnLeftDegrees(averageDiff)
+
+    else :
+        turnRightDegrees(averageDiff)
+
+
+    rospy.sleep(1)
+
+
+
+
+
+
+
 def colorHandler(data) :
     global inRoom
     if (data.data) :
@@ -158,14 +213,12 @@ def setup() :
         if 'USB2.0-Serial' in desc:
             print('arduino connected')
             ard = serial.Serial(port, 9600, timeout=0)
-    '''
             while True:
                 curr = ard.readline().decode().strip()
 #                print(curr)
                 if curr == 'sound':
                     print('got sound')
                     break
-    '''
     time.sleep(1)
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
@@ -188,6 +241,20 @@ def removeInf(distances) :
         else :
             d.append(1000)
     return d
+
+def planeDistance (angle) :
+    global distances
+    hypo = distances[angle]
+    if hypo != -1 :
+        x = hypo * math.cos(angle * angle_increment) # convert to radians
+        y = hypo * math.sin(angle * angle_increment)
+
+    else :
+        x = -1
+        y = -1
+
+    return [x, y]
+
 
 
 def scanHandler(scan):
@@ -281,7 +348,6 @@ def handleRoom():
     #moveForwardDistance(0)
 
 
-# gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def moveAround() :
     global updatedDistances, detectOpening, justTurned, inRoom, tolerance, newDist
     print("newDist: " + str(newDist))
