@@ -122,7 +122,8 @@ def scanHandler(scan):
 #        updatedDistances = infToAdj()
 #        print("After toAdj at 0 " + str(updatedDistances[0]))
 #        print("AFter toAdj at 90 " + str(updatedDistances[90]))
-
+        print("SCANHANDLER\n")
+        print("0 in scan " + str(distances[0]))
         if not len(detectOpening) or justTurned:
             detectOpening = [updatedDistances[0], updatedDistances[0], updatedDistances[0]]
 
@@ -195,18 +196,19 @@ def moveAround() :
 #        print(str(distances) + "\n")
         distances = updatedDistances
         if len(distances) == 0 :
+            rospy.sleep(0.5)
             continue
-        print("NEWDIST " + str(newDist))
-        print("AT 0 " + str(distances[0]))
-        print("DETECT " + str(detectOpening))
+#        print("NEWDIST " + str(newDist))
+#        print("AT 0 " + str(distances[0]))
+#        print("DETECT " + str(detectOpening))
 #        print(distances)
        # print("DUPDATED: " + str(distances))
 #        print("Distances: \n" + str(distances))
-#        print("At angle 0 " + str(distances[0]))
+        print("At angle 0 " + str(distances[0]))
 #        print("At angle 90 " + str(distances[90]))
        # print("UP: " + str(updatedDistances))
         # For the room detection
-        print('inRoom', inRoom)
+##        print('inRoom', inRoom)
         if (inRoom) :#r+g+b>300
                 handleRoom()
                 print("out of room?")
@@ -220,7 +222,7 @@ def moveAround() :
             justTurned=False
         else:
             #newDist = distances[0]
-            print("Not in room")
+  #          print("Not in room")
             if distances[90]<0.32:
                 print("Turning left")
                 turnLeftDegrees(90)
