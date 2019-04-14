@@ -106,9 +106,8 @@ def scanHandler(scan):
         if (distances[0] != 1000):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
-        # For the room detection
-        if (inRoom):
-            print('got white')
+
+
         print('inRoom', inRoom)
         if(inRoom==1):#r+g+b>300
             turnAndMove(0,0)
@@ -117,7 +116,8 @@ def scanHandler(scan):
            #fireSweep()
             print("fire sweep")
 #            turnRightDegrees(360)
-            turnLeftDegrees(180)
+            slowturnRightDegrees(540)
+
             rospy.sleep(1)
             print("after turn")
             i = 0
@@ -197,6 +197,19 @@ def turnRightDegrees(degrees):
     global turn
     radians = degrees * (math.pi/180)
     turn.publish(Float64(radians))
+    #
+
+# Turns left at 1 radians (? degrees) per second
+def slowturnLeftDegrees(degrees):
+    global turnslow
+    radians = - degrees * (math.pi / (180))
+    turnslow.publish(Float64(radians))
+
+# Turns right at 1 radians (? degrees) per second
+def slowturnRightDegrees(degrees):
+    global turnslow
+    radians = degrees * (math.pi/180)
+    turnslow.publish(Float64(radians))
     #
 
 #SPEED IS IN M/S
