@@ -28,6 +28,17 @@ tcs=Adafruit_TCS34725.TCS34725()
 inRoom=False
 
 
+def removeInf(distances) :
+    d = []
+    for dist in range(len(distances)) :
+        if (not math.isinf(distances[dist])) :
+            d.append(distances[dist])
+
+        else :
+            d.append(1000)
+    return d
+
+
 def alignToWall(n):
     global distances, angle_increment, detectOpening
     minDist = distances[n]
@@ -58,6 +69,20 @@ def colorHandler(data):
 
 def setup():
     global distances, angle_increment, turn, vel, drive, turnslow
+    '''
+    for port, desc, hwid in sorted(ports):
+        print("{}: {} [{}]".format(port, desc, hwid))
+        if 'USB2.0-Serial' in desc:
+            print('arduino connected')
+            ard = serial.Serial(port, 9600, timeout=0)
+            while True:
+                curr = ard.readline().decode().strip()
+#                print(curr)
+                if curr == 'sound':
+                    print('got sound')
+                    break
+    '''
+    
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     rospy.Subscriber("/color", Bool, colorHandler)
@@ -66,19 +91,6 @@ def setup():
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     turnslow = rospy.Publisher('turnslow', Float64, queue_size=10)
     time.sleep(1)
-#    turnLeftDegrees(31)
-#    time.sleep(2)
-#    turnRightDegrees(180)
-#    time.sleep(2)
-#    moveForwardDistance(.5)
-#    time.sleep(2)
-#    moveForwardDistance(-.5)
-#    time.sleep(2)
-#    time.sleep(1)
-#    turnAndMove(0, 0)
-#    alignToWall(0)
-#    time.sleep(1)
-    #wallfollower()
     rospy.spin()
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
@@ -86,21 +98,11 @@ def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom, acceptTime
     if rospy.get_time()-scan.header.stamp.secs<acceptTime and soundStart:
         distances = scan.ranges
-        print("scanhandler")
-        d = []
-        newDist = 0
-        for dist in range(len(distances)) :
-            #print(distances[dist])
-            if (not math.isinf(distances[dist])) :
-                d.append(distances[dist])
 
-            else :
-                d.append(1000)
-
-        distances = d
+        distances = removeInf(distances)
         angle_increment = scan.angle_increment
 
-        if len(detectOpening)==0 or justTurned:
+        if len(detectOpening) == 0 or justTurned:
             detectOpening = [distances[0], distances[0], distances[0]]
 
         # Distance from right wall, 1000 = inf right now
