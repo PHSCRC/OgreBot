@@ -48,6 +48,21 @@ def turn(rad):
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate + countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
 
+def turnslow(rad):
+    global my_drive, targetPos, isInPositionMode, speed
+    isInPositionMode=True
+    my_drive.axis0.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+    my_drive.axis1.controller.config.control_mode = CTRL_MODE_POSITION_CONTROL
+    speed = my_drive.axis0.controller.config.vel_limit
+    my_drive.axis0.controller.config.vel_limit = 2000
+    my_drive.axis1.controller.config.vel_limit = 2000
+    countsToMove=rad.data*(ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
+    print("rad", rad.data)
+    print("counts", countsToMove)
+    targetPos=my_drive.axis0.encoder.pos_estimate+countsToMove
+    my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate + countsToMove
+    my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
+
 def drive(distance):
     global my_drive, targetPos, isInPositionMode, speed
     isInPositionMode=True
@@ -108,6 +123,7 @@ def listener():
     vels = rospy.Publisher('wheel_vels', robot_vels, queue_size=10)
     rospy.Timer(rospy.Duration(POLL_TIME), poll, oneshot=False)
     rospy.Subscriber("/turn", Float64, turn)
+    rospy.Subscriber("/turnslow", Float64, turnslow)
     rospy.Subscriber("/drive", Float64, drive)
     hi = rospy.Publisher('motor_listener_listening', String, queue_size=10)
     hi.publish(String('Ready'))
