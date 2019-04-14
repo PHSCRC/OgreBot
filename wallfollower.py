@@ -57,25 +57,36 @@ def infToAdj (distances) :
     return adj
 
 
-def alignToWall(n):
-    global distances, angle_increment, detectOpening
-    minDist = distances[n]
-    minDistAngle = n
-    # this is bad rn
-    #print(distances)
-    debugAlign = []
-    for i in range(n-25, n+25):
-        debugAlign.append(distances[i])
-        if distances[i] < minDist:
-            minDist = distances[i]
-            minDistAngle = i
+def alignToWall(n, distances, coneSize = 40) :
+    dist = infToAdj(distances)
+#    print("ALIGNING TO WALL")
+#    print(dist)
+    minDistSum = 10000 # Arbitrary high value to find mins
+    minDistAngle = 0
+
+    numValuesTaken = 7
+    #debugList = []
+    for i in range(n - coneSize, n + coneSize - numValuesTaken) :
+        #debugList.append(dist[i])
+        sum = 0
+        for j in range(0, numValuesTaken) :
+            sum += dist[i + j]
+
+        if sum < minDistSum :
+            minDistSum = sum
+            minDistAngle = i + numValuesTaken // 2
+
     print("Moving to " + str(minDistAngle) + "degrees")
-    print(debugAlign)
+
+    wheelOffset = 0
+    minDistAngle += wheelOffset
     if minDistAngle < 0:
         turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
         turnRightDegrees(n-minDistAngle)
-    rospy.sleep(0.25)
+    #print(debugList)
+    rospy.sleep(0.5)
+
 
 def colorHandler(data):
     global inRoom
@@ -159,7 +170,7 @@ def scanHandler(scan):
             #rospy.sleep(0.5)
             #moveForwardDistance(0)
         elif(justTurned):
-            alignToWall(0)
+            alignToWall(0, distances)
             rospy.sleep(0.7)
             inRoom=0
             justTurned=False
