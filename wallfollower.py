@@ -106,6 +106,7 @@ def scanHandler(scan):
             detectOpening = [distances[0], distances[0], distances[0]]
 
         # Distance from right wall, 1000 = inf right now
+        newDist = 0
         if (distances[0] != 1000):
             newDist = distances[0]
         r,g,b,c = tcs.get_raw_data()
@@ -158,7 +159,7 @@ def scanHandler(scan):
                 # Distance will have to be determined through testing
                 turnAndMove(0,0)
                 if(newDist>(sum(detectOpening)/len(detectOpening))+tolerance):
-                    moveForwardDistance(0.15)
+                    moveForwardDistance(0.12)
                     rospy.sleep(1)
                 turnRightDegrees(90)
                 rospy.sleep(1)
