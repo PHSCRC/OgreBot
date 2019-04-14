@@ -69,6 +69,7 @@ def infToAdj () :
 def alignToWall(n, coneSize = 40) :
 
     dist = infToAdj()
+    print("ALIGNING TO WALL")
     print(dist)
     minDistSum = 10000 # Arbitrary high value to find mins
     minDistAngle = 0
@@ -184,12 +185,8 @@ def moveAround() :
     tSize = 5
    # while not rospy.is_shutdown() and not len(updatedDistances) :
     #    print("NO READING")
-    distances = []
     while not rospy.is_shutdown() : # test this
-        if (distances == updatedDistances) :
-            print("EQUAL")
-        else :
-            print("NO")
+
         distances = updatedDistances
 #        print("Distances: \n" + str(distances))
         print("At angle 0 " + str(distances[0]))
