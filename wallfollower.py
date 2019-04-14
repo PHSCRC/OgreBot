@@ -33,11 +33,13 @@ inRoom = False
 
 ard = None
 
+'''
 def read_flame () :
     global ard
     read = ard.readline().decode().strip()
     return read
 
+'''
 def toggle_extinguisher(state):
     if(state):
         GPIO.output(21, GPIO.HIGH)
@@ -83,6 +85,7 @@ def setup() :
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(21, GPIO.OUT)
     global distances, angle_increment, turn, vel, drive, fireReading, ard, turnslow
+    '''
     for port, desc, hwid in sorted(ports):
         print("{}: {} [{}]".format(port, desc, hwid))
         if 'USB2.0-Serial' in desc:
@@ -94,6 +97,7 @@ def setup() :
                 if curr == 'sound':
                     print('got sound')
                     break
+    '''
     time.sleep(1)
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
@@ -122,11 +126,12 @@ def scanHandler(scan) :
     if rospy.get_time()-scan.header.stamp.secs<acceptTime:
         distances = scan.ranges
         print("scanhandler")
-        print("Flame sensor reading: " + str(read_flame()))
+       # print("Flame sensor reading: " + str(read_flame()))
 
         angle_increment = scan.angle_increment
 
         distances = removeInf(distances)
+        print("DIST 0 " + str(distances[0]))
 
         if not len(detectOpening) or justTurned:
             detectOpening = [distances[0], distances[0], distances[0]]
