@@ -16,7 +16,6 @@ drive = None
 angle_increment = None
 vel = None
 
-tSize = 5
 updatedDistances = []
 detectOpening = [];
 forwardSpeed = 0.1 #m/s
@@ -30,12 +29,6 @@ inRoom = False
 
 ard = None
 
-'''
-Current Known Issues with the Code - delete any resolved issues
- - Sometimes bricks the entire Pi - huge yeet
- - We need to make a proper @exit thing that kills all of our nodes, this might contribute to the bricking of the pi -check the new condition for the while loop-  Just a theory
- - detectOpening is always filled with zeros? Not sure if this issue has been resolved yet - unresolved
-'''
 
 def read_flame () :
     global ard
@@ -179,6 +172,7 @@ def moveAround() :
     global updatedDistances, detectOpening, justTurned, inRoom, newDist
 
     tolerance = 0.3
+    tSize = 5
 
     while not rospy.is_shutdown() : # test this
         distances = updatedDistances
@@ -189,10 +183,10 @@ def moveAround() :
                 print("out of room?")
                 print(inRoom)
                 turnAndMove(0,0)
-                alignToWallExp(0, 40)
+                alignToWallExp(0)
                 rospy.sleep(1)
         elif(justTurned):
-            alignToWallExp(0, 40)
+            alignToWallExp(0)
             rospy.sleep(0.7)
             justTurned=False
         else:
@@ -217,7 +211,9 @@ def moveAround() :
                 rospy.sleep(1)
                 justTurned=True
                 turnAndMove(0,0)
+                alignToWallExp(0)
             else:
+                print("????? Called- talk to charlie")
                 p=24-distances[0]
                 turnAndMove(forwardSpeed, p*pGain)
                 detectOpening.append(newDist)
