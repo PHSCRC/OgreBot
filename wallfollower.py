@@ -28,11 +28,6 @@ tcs=Adafruit_TCS34725.TCS34725()
 inRoom=False
 
 
-'''
-For the beginning, it might be better look to at the back half of the robot to alignToWall, but this
-will only work for the beginning.
-    -Stephane
-'''
 def alignToWall(n):
     global distances, angle_increment, detectOpening
     minDist = distances[n]
