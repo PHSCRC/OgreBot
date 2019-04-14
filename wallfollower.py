@@ -142,7 +142,7 @@ def scanHandler(scan):
 
 
         print('inRoom', inRoom)
-        if(inRoom==1):#r+g+b>300
+        if (inRoom):#r+g+b>300
             turnAndMove(0,0)
             moveForward(0.2)
             rospy.sleep(1)
@@ -152,13 +152,14 @@ def scanHandler(scan):
             slowturnRightDegrees(540)
 
             rospy.sleep(20)
-            print("after turn")
             i = 0
             while (inRoom==1) :
                 print("getting out of room")
                 print(i * 0.05)
                 moveForwardDistance(0.05)
-                rospy.sleep(0.7)
+                rospy.sleep(1)
+                alignToWall(0, distances)
+                rospy.sleep(1)
                 i += 1
             moveForwardDistance(0.05)
             rospy.sleep(0.7)
@@ -171,9 +172,10 @@ def scanHandler(scan):
             #moveForwardDistance(0)
         elif(justTurned):
             alignToWall(0, distances)
-            rospy.sleep(0.7)
-            inRoom=0
+            rospy.sleep(1)
+            inRoom = 0
             justTurned=False
+
         else:
             # This determines if there is an opening to the right
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
@@ -182,6 +184,8 @@ def scanHandler(scan):
             if distances[90]<0.32:
                 print("Turning left")
                 turnLeftDegrees(90)
+                rospy.sleep(1)
+                alignToWall(0, distances)
                 rospy.sleep(1)
             elif (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
