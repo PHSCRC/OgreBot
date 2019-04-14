@@ -194,7 +194,11 @@ def moveAround() :
         #    print("FAILED TO UPDATE")
 #        print(str(distances) + "\n")
         distances = updatedDistances
+        if len(distances) == 0 :
+            continue
         print("NEWDIST " + str(newDist))
+        print("AT 0 " + str(distances[0]))
+        print("DETECT " + str(detectOpening))
 #        print(distances)
        # print("DUPDATED: " + str(distances))
 #        print("Distances: \n" + str(distances))
