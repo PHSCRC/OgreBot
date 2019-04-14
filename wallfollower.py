@@ -57,13 +57,14 @@ def colorHandler(data):
     print("in color handler: "+str(inRoom))
 
 def setup():
-    global distances, angle_increment, turn, vel, drive
+    global distances, angle_increment, turn, vel, drive, turnslow
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     rospy.Subscriber("/color", Bool, colorHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
+    turnslow = rospy.Publisher('turnslow', Float64, queue_size=10)
     time.sleep(1)
 #    turnLeftDegrees(31)
 #    time.sleep(2)
@@ -118,7 +119,7 @@ def scanHandler(scan):
 #            turnRightDegrees(360)
             slowturnRightDegrees(540)
 
-            rospy.sleep(1)
+            rospy.sleep(20)
             print("after turn")
             i = 0
             while (inRoom==1) :
