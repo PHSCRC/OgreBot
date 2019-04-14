@@ -98,7 +98,6 @@ def colorHandler(data):
 
 def setup():
     global distances, angle_increment, turn, vel, drive, turnslow
-    '''
     for port, desc, hwid in sorted(ports):
         print("{}: {} [{}]".format(port, desc, hwid))
         if 'USB2.0-Serial' in desc:
@@ -110,7 +109,6 @@ def setup():
                 if curr == 'sound':
                     print('got sound')
                     break
-    '''
 
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
