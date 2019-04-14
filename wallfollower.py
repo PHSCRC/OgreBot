@@ -1,8 +1,6 @@
 #!/usr/bin/env python
+
 import time
-import serial
-import serial.tools.list_ports
-ports = serial.tools.list_ports.comports()
 import math
 import rospy
 from geometry_msgs.msg import Twist, Vector3
@@ -10,28 +8,25 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import *
 import Adafruit_TCS34725
 import smbus
-import RPi.GPIO as GPIO
 
 turn = None
 drive = None
 angle_increment = None
 vel = None
-
 tolerance = .30
 tSize = 5
 distances = []
-detectOpening = [];
-forwardSpeed = 0.1 #m/s
-pGain = -0.000
-acceptTime = 1
-newDist = None
-justTurned = False
-soundStart = False
-tcs = Adafruit_TCS34725.TCS34725()
+detectOpening=[];
+forwardSpeed=0.1 #m/s
+pGain=-0.000
+acceptTime=1
 
-inRoom = False
+justTurned=False
+soundStart=True
+tcs=Adafruit_TCS34725.TCS34725()
 
-ard = None
+inRoom=False
+
 
 '''
 def read_flame () :
@@ -40,11 +35,7 @@ def read_flame () :
     return read
 
 '''
-def toggle_extinguisher(state):
-    if(state):
-        GPIO.output(21, GPIO.HIGH)
-    else:
-        GPIO.output(21, GPIO.LOW)
+
 
 def alignToWall(n):
     global distances, angle_increment, detectOpening
@@ -66,59 +57,24 @@ def alignToWall(n):
         turnRightDegrees(n-minDistAngle)
     rospy.sleep(0.25)
 
-def alignToClosestWall() :
-    global distances, angle_increment, detectOpening
-    minIndex = distances.index(min(distances))
-    print("Moving to " + str(minIndex) + "degrees")
-    turnLeftDegrees(minIndex)
-    rospy.sleep(0.25)
-
-def colorHandler(data) :
+def colorHandler(data):
     global inRoom
-    if (data.data) :
-        inRoom = 1
+    if(data.data):
+        inRoom=1
     else:
-        inRoom = 0
+        inRoom=0
     print("in color handler: "+str(inRoom))
 
-def setup() :
-    GPIO.setmode(GPIO.BCM)
-    GPIO.setup(21, GPIO.OUT)
-    global distances, angle_increment, turn, vel, drive, fireReading, ard, turnslow
-    '''
-    for port, desc, hwid in sorted(ports):
-        print("{}: {} [{}]".format(port, desc, hwid))
-        if 'USB2.0-Serial' in desc:
-            print('arduino connected')
-            ard = serial.Serial(port, 9600, timeout=0)
-            while True:
-                curr = ard.readline().decode().strip()
-#                print(curr)
-                if curr == 'sound':
-                    print('got sound')
-                    break
-    '''
-    time.sleep(1)
+def setup():
+    global distances, angle_increment, turn, vel, drive
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     rospy.Subscriber("/color", Bool, colorHandler)
     vel = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
     turn = rospy.Publisher('turn', Float64, queue_size=10)
-    turnslow = rospy.Publisher('turnslow', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
     rospy.spin()
-
-def removeInf(distances) :
-    d = []
-    for dist in range(len(distances)) :
-        if (not math.isinf(distances[dist])) :
-            d.append(distances[dist])
-
-        else :
-            d.append(1000)
-    return d
-
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
 def scanHandler(scan):
@@ -145,29 +101,25 @@ def scanHandler(scan):
         # Distance from right wall, 1000 = inf right now
         if (distances[0] != 1000):
             newDist = distances[0]
+
         r,g,b,c = tcs.get_raw_data()
         # For the room detection
-        if (inRoom):
-            print('got white')
         print('inRoom', inRoom)
-        if(inRoom==1):#r+g+b>300
-            turnAndMove(0,0)
-            moveForward(0.2)
-            rospy.sleep(1)
-           #fireSweep()
-            print("fire sweep")
-            slowturnRightDegrees()
-#            turnRightDegrees(360)
-            turnLeftDegrees(180)
-            rospy.sleep(1)
-            print("after turn")
+        if (inRoom) :#r+g+b>300
+
+            slowturnRightDegrees(540)
+
+            rospy.sleep(3)
             i = 0
-            while (inRoom==1) :
+            while (inRoom) :
                 print("getting out of room")
                 print(i * 0.05)
                 moveForwardDistance(0.05)
                 rospy.sleep(0.7)
                 i += 1
+            moveForwardDistance(0.05)
+            rospy.sleep(0.7)
+
             moveForwardDistance(0.05)
             rospy.sleep(0.7)
             print("out of room?")
@@ -196,13 +148,13 @@ def scanHandler(scan):
                 # Distance will have to be determined through testing
                 turnAndMove(0,0)
                 if(newDist>(sum(detectOpening)/len(detectOpening))+tolerance):
-                    moveForwardDistance(0.15)
+                    moveForwardDistance(0.1)
                     rospy.sleep(1)
                 turnRightDegrees(90)
                 rospy.sleep(1)
                 print("Moving into opening")
                 # Distance will have to be determined through testing
-                moveForwardDistance(0.4)
+                moveForwardDistance(0.35)
                 rospy.sleep(1)
                 justTurned=True
                 turnAndMove(0,0)
@@ -236,19 +188,6 @@ def turnRightDegrees(degrees):
     global turn
     radians = degrees * (math.pi/180)
     turn.publish(Float64(radians))
-    #
-
-# Turns left at 1 radians (? degrees) per second
-def slowturnLeftDegrees(degrees):
-    global turnslow
-    radians = - degrees * (math.pi / (180))
-    turnslow.publish(Float64(radians))
-
-# Turns right at 1 radians (? degrees) per second
-def slowturnRightDegrees(degrees):
-    global turnslow
-    radians = degrees * (math.pi/180)
-    turnslow.publish(Float64(radians))
     #
 
 #SPEED IS IN M/S
