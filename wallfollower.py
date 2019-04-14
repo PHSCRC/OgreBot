@@ -123,7 +123,7 @@ def setup():
     time.sleep(1)
     rospy.spin()
 
-# gives list of distances starting from angle 0 to 360, at increment of angle_increment
+
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, justTurned, soundStart, tcs, inRoom, acceptTime
     if rospy.get_time()-scan.header.stamp.secs<acceptTime and soundStart:
@@ -182,12 +182,13 @@ def scanHandler(scan):
             #if (newDist > (sum(detectOpening)/len(detectOpening)) + tolerance) :
 
             print("Not in room")
-            if distances[90]<0.32:
+            if distances[90] < 0.32 :
                 print("Turning left")
                 turnLeftDegrees(90)
                 rospy.sleep(1)
                 alignToWall(0, distances)
                 rospy.sleep(1)
+                
             elif (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
