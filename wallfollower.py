@@ -39,6 +39,24 @@ def removeInf(distances) :
     return d
 
 
+def infToAdj (distances) :
+    # For each infinity, searches backwards and forwards for nearest found value and sets it to that value
+    distances = removeInf(distances)
+
+    adj = []
+    for i in range(0, len(distances)) :
+        if distances[i] != 1000 : #not math.isinf(distances[i]) :
+            adj.append(distances[i])
+
+        else :
+            j = 0
+            while distances[(i + j) % 360] == 1000 and distances[i - j] == 1000 :  #(math.isinf(distances[(i + j) % 360])) and (math.isinf(distances[i - j])) :
+                j += 1
+            adj.append(min(distances[(i + j) % 360], distances[i - j]))
+
+    return adj
+
+
 def alignToWall(n):
     global distances, angle_increment, detectOpening
     minDist = distances[n]
@@ -82,7 +100,7 @@ def setup():
                     print('got sound')
                     break
     '''
-    
+
     rospy.init_node('wallfollower', anonymous=False)
     rospy.Subscriber("/scan", LaserScan, scanHandler, queue_size=1, buff_size=1)
     rospy.Subscriber("/color", Bool, colorHandler)
@@ -182,8 +200,7 @@ def scanHandler(scan):
             if (len(detectOpening) > tSize) :
                 detectOpening.pop(0)
 
-        # This aligns regularly
-        #print("distances[0]: " + str(distances[0]) + ", distances[90]: " + str(distances[90]) + ", distances[180]: " + str(distances[180]) + ", distances[270]: " + str(distances[270]))
+
 
 # Moves forward m meters at .20
 def moveForwardDistance(distance):
