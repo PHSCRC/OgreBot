@@ -205,7 +205,7 @@ def moveAround() :
        # print("DUPDATED: " + str(distances))
 #        print("Distances: \n" + str(distances))
         print("At angle 0 " + str(distances[0]))
-#        print("At angle 90 " + str(distances[90]))
+        print("At angle 90 " + str(distances[90]))
        # print("UP: " + str(updatedDistances))
         # For the room detection
 ##        print('inRoom', inRoom)
