@@ -69,6 +69,7 @@ def infToAdj () :
 def alignToWall(n, coneSize = 40) :
 
     dist = infToAdj()
+    print(dist)
     minDistSum = 10000 # Arbitrary high value to find mins
     minDistAngle = 0
 
@@ -109,10 +110,15 @@ def scanHandler(scan):
     global updatedDistances, detectOpening, newDist
     if rospy.get_time()-scan.header.stamp.secs < 1:
         distances = scan.ranges
-
         angle_increment = scan.angle_increment
 
         updatedDistances = removeInf(distances)
+#        print("Before toAdj at 0 " + str(updatedDistances[0]))
+#        print("Before toAdj at 90 " + str(updatedDistances[90]))
+#        updatedDistances = infToAdj()
+#        print("After toAdj at 0 " + str(updatedDistances[0]))
+#        print("AFter toAdj at 90 " + str(updatedDistances[90]))
+
         if not len(detectOpening) or justTurned:
             detectOpening = [updatedDistances[0], updatedDistances[0], updatedDistances[0]]
 
@@ -148,12 +154,15 @@ def setup() :
         if 'USB2.0-Serial' in desc:
             print('arduino connected')
             ard = serial.Serial(port, 9600, timeout=0)
+            '''
             while True:
                 curr = ard.readline().decode().strip()
-#                print(curr)
+                if (curr != "") :
+                    print(curr)
                 if curr == 'sound':
                     print('got sound')
                     break
+            '''
 
     time.sleep(1)
     rospy.init_node('wallfollower', anonymous=False)
@@ -163,7 +172,6 @@ def setup() :
     turn = rospy.Publisher('turn', Float64, queue_size=10)
     drive = rospy.Publisher('drive', Float64, queue_size=10)
     time.sleep(1)
-    alignToWall(0)
     moveAround()
     rospy.spin() # Keeps from exiting
 
@@ -173,9 +181,14 @@ def moveAround() :
 
     tolerance = 0.3
     tSize = 5
-
+   # while not rospy.is_shutdown() and not len(updatedDistances) :
+    #    print("NO READING")
     while not rospy.is_shutdown() : # test this
         distances = updatedDistances
+#        print("Distances: \n" + str(distances))
+        print("At angle 0 " + str(distances[0]))
+        print("At angle 90 " + str(distances[90]))
+       # print("UP: " + str(updatedDistances))
         # For the room detection
         print('inRoom', inRoom)
         if (inRoom) :#r+g+b>300
@@ -183,10 +196,10 @@ def moveAround() :
                 print("out of room?")
                 print(inRoom)
                 turnAndMove(0,0)
-                alignToWallExp(0)
+                alignToWall(0)
                 rospy.sleep(1)
         elif(justTurned):
-            alignToWallExp(0)
+            alignToWall(0)
             rospy.sleep(0.7)
             justTurned=False
         else:
@@ -196,6 +209,7 @@ def moveAround() :
                 print("Turning left")
                 turnLeftDegrees(90)
                 rospy.sleep(1)
+                alignToWall(90)
             elif (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
@@ -211,9 +225,8 @@ def moveAround() :
                 rospy.sleep(1)
                 justTurned=True
                 turnAndMove(0,0)
-                alignToWallExp(0)
+                alignToWall(0)
             else:
-                print("????? Called- talk to charlie")
                 p=24-distances[0]
                 turnAndMove(forwardSpeed, p*pGain)
                 detectOpening.append(newDist)
