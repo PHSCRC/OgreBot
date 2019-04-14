@@ -110,6 +110,7 @@ def scanHandler(scan):
     global updatedDistances, detectOpening, newDist
     if rospy.get_time()-scan.header.stamp.secs < 1:
         distances = scan.ranges
+#        print(distances)
         angle_increment = scan.angle_increment
 
         updatedDistances = removeInf(distances)
@@ -183,7 +184,12 @@ def moveAround() :
     tSize = 5
    # while not rospy.is_shutdown() and not len(updatedDistances) :
     #    print("NO READING")
+    distances = []
     while not rospy.is_shutdown() : # test this
+        if (distances == updatedDistances) :
+            print("EQUAL")
+        else :
+            print("NO")
         distances = updatedDistances
 #        print("Distances: \n" + str(distances))
         print("At angle 0 " + str(distances[0]))
