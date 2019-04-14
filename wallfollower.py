@@ -1,6 +1,8 @@
 #!/usr/bin/env python
-
 import time
+import serial
+import serial.tools.list_ports
+ports = serial.tools.list_ports.comports()
 import math
 import rospy
 from geometry_msgs.msg import Twist, Vector3
@@ -8,6 +10,7 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import *
 import Adafruit_TCS34725
 import smbus
+import RPi.GPIO as GPIO
 
 turn = None
 drive = None
@@ -151,7 +154,7 @@ def scanHandler(scan):
 
             rospy.sleep(20)
             i = 0
-            while (inRoom==1) :
+            while (inRoom) :
                 print("getting out of room")
                 print(i * 0.05)
                 moveForwardDistance(0.05)
