@@ -46,67 +46,25 @@ def toggle_extinguisher(state):
     else:
         GPIO.output(21, GPIO.LOW)
 
-def removeInf(distances) :
-    d = []
-    for dist in range(len(distances)) :
-        if (not math.isinf(distances[dist])) :
-            d.append(distances[dist])
-
-        else :
-            d.append(1000)
-    return d
-
-def infToAdj () :
-    # For each infinity, searches backwards and forwards for nearest found value and sets it to that value
-    global distances
-    distances = removeInf(distances)
-
-    adj = []
-    for i in range(0, len(distances)) :
-        if distances[i] != 1000 : #not math.isinf(distances[i]) :
-            adj.append(distances[i])
-
-        else :
-            j = 0
-            while distances[(i + j) % 360] == 1000 and distances[i - j] == 1000 :  #(math.isinf(distances[(i + j) % 360])) and (math.isinf(distances[i - j])) :
-                j += 1
-            adj.append(min(distances[(i + j) % 360], distances[i - j]))
-
-    return adj
-
-
-def alignToWall(n, coneSize = 40) :
-
-    dist = infToAdj()
-#    print("ALIGNING TO WALL")
-#    print(dist)
-    minDistSum = 10000 # Arbitrary high value to find mins
-    minDistAngle = 0
-
-    numValuesTaken = 7
-    #debugList = []
-    for i in range(n - coneSize, n + coneSize - numValuesTaken) :
-        #debugList.append(dist[i])
-        sum = 0
-        for j in range(0, numValuesTaken) :
-            sum += dist[i + j]
-
-        if sum < minDistSum :
-            minDistSum = sum
-            minDistAngle = i + numValuesTaken // 2
-
+def alignToWall(n):
+    global distances, angle_increment, detectOpening
+    minDist = distances[n]
+    minDistAngle = n
+    # this is bad rn
+    #print(distances)
+    debugAlign = []
+    for i in range(n-25, n+25):
+        debugAlign.append(distances[i])
+        if distances[i] < minDist:
+            minDist = distances[i]
+            minDistAngle = i
     print("Moving to " + str(minDistAngle) + "degrees")
-
-    wheelOffset = 0
-    minDistAngle += wheelOffset
+    print(debugAlign)
     if minDistAngle < 0:
         turnLeftDegrees(n-math.fabs(minDistAngle))
     else:
         turnRightDegrees(n-minDistAngle)
-    #print(debugList)
-    rospy.sleep(0.5)
-
-    
+    rospy.sleep(0.25)
 
 def alignToClosestWall() :
     global distances, angle_increment, detectOpening
@@ -151,7 +109,15 @@ def setup() :
     time.sleep(1)
     rospy.spin()
 
+def removeInf(distances) :
+    d = []
+    for dist in range(len(distances)) :
+        if (not math.isinf(distances[dist])) :
+            d.append(distances[dist])
 
+        else :
+            d.append(1000)
+    return d
 
 
 # gives list of distances starting from angle 0 to 360, at increment of angle_increment
@@ -190,8 +156,9 @@ def scanHandler(scan):
             rospy.sleep(1)
            #fireSweep()
             print("fire sweep")
-            slowturnRightDegrees(540)
+            slowturnRightDegrees()
 #            turnRightDegrees(360)
+            turnLeftDegrees(180)
             rospy.sleep(1)
             print("after turn")
             i = 0
