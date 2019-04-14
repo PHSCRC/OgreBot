@@ -69,8 +69,8 @@ def infToAdj () :
 def alignToWall(n, coneSize = 40) :
 
     dist = infToAdj()
-    print("ALIGNING TO WALL")
-    print(dist)
+#    print("ALIGNING TO WALL")
+#    print(dist)
     minDistSum = 10000 # Arbitrary high value to find mins
     minDistAngle = 0
 
@@ -113,8 +113,10 @@ def scanHandler(scan):
         distances = scan.ranges
 #        print(distances)
         angle_increment = scan.angle_increment
-
+#        print("SCANHANDLED")
+#        print("UPDATED BEFORE " + str(updatedDistances))
         updatedDistances = removeInf(distances)
+#        print("UPDATED AFTER " + str(updatedDistances))
 #        print("Before toAdj at 0 " + str(updatedDistances[0]))
 #        print("Before toAdj at 90 " + str(updatedDistances[90]))
 #        updatedDistances = infToAdj()
@@ -126,7 +128,7 @@ def scanHandler(scan):
 
         # Distance from right wall, 1000 = inf right now
         newDist = 0
-        if (distances[0] != 1000):
+        if (updatedDistances[0] != 1000):
             newDist = updatedDistances[0]
 
 # Needed for moveAround()
@@ -185,12 +187,19 @@ def moveAround() :
     tSize = 5
    # while not rospy.is_shutdown() and not len(updatedDistances) :
     #    print("NO READING")
+    distances = []
     while not rospy.is_shutdown() : # test this
-
+       # print("DISTANCES " + str(distances))
+        #if distances == updatedDistances :
+        #    print("FAILED TO UPDATE")
+#        print(str(distances) + "\n")
         distances = updatedDistances
+        print("NEWDIST " + str(newDist))
+#        print(distances)
+       # print("DUPDATED: " + str(distances))
 #        print("Distances: \n" + str(distances))
-        print("At angle 0 " + str(distances[0]))
-        print("At angle 90 " + str(distances[90]))
+#        print("At angle 0 " + str(distances[0]))
+#        print("At angle 90 " + str(distances[90]))
        # print("UP: " + str(updatedDistances))
         # For the room detection
         print('inRoom', inRoom)
