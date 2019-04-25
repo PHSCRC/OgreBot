@@ -1,20 +1,17 @@
 #!/usr/bin/env python
 import time
-import serial
-import serial.tools.list_ports
-ports = serial.tools.list_ports.comports()
 import math
 import rospy
 from geometry_msgs.msg import Twist, Vector3
 from sensor_msgs.msg import LaserScan
 from std_msgs.msg import *
-import Adafruit_TCS34725
 import smbus
 
 turn = None
 drive = None
 angle_increment = None
 vel = None
+acceptTime = 1
 
 def setup():
     global distances, angle_increment, turn, vel, drive
@@ -35,7 +32,6 @@ def run() :
     turns = 0
 
     while True :
-
         if (distances[90] < 0.3 and distances[90] != 1000) :
 
             turns += 1
@@ -58,10 +54,11 @@ def run() :
 
         else :
             moveForward(forwardSpeed)
+            rospy.sleep(1)
 
 
 def scanHandler(scan):
-    global distances, detectOpening, angle_increment, justTurned, acceptTime
+    global distances, detectOpening, angle_increment, acceptTime
     if rospy.get_time()-scan.header.stamp.secs < acceptTime and soundStart:
         distances = scan.ranges
         print("scanhandler")
@@ -78,7 +75,7 @@ def scanHandler(scan):
         distances = d
         angle_increment = scan.angle_increment
 
-        if len(detectOpening)==0 or justTurned:
+        if len(detectOpening) == 0 :
             detectOpening = [distances[0], distances[0], distances[0]]
 
         # Distance from right wall, 1000 = inf right now
