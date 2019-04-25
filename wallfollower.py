@@ -154,12 +154,13 @@ def scanHandler(scan):
 
             rospy.sleep(20)
             i = 0
+            alignToWall(0, distances)
+            rospy.sleep(2)
             while (inRoom) :
                 print("getting out of room")
                 print(i * 0.05)
                 moveForwardDistance(0.05)
                 rospy.sleep(1)
-                alignToWall(0, distances)
                 rospy.sleep(1)
                 i += 1
             moveForwardDistance(0.05)
@@ -167,7 +168,7 @@ def scanHandler(scan):
             print("out of room?")
             print(inRoom)
             turnAndMove(0,0)
-            justTurned=True
+            justTurned = True
             #turnRightDegrees(180)
             #rospy.sleep(0.5)
             #moveForwardDistance(0)
@@ -175,7 +176,7 @@ def scanHandler(scan):
             alignToWall(0, distances)
             rospy.sleep(1)
             inRoom = 0
-            justTurned=False
+            justTurned = False
 
         else:
             # This determines if there is an opening to the right
@@ -188,7 +189,7 @@ def scanHandler(scan):
                 rospy.sleep(1)
                 alignToWall(0, distances)
                 rospy.sleep(1)
-                
+
             elif (newDist > .65 or newDist > (sum(detectOpening)/len(detectOpening)) + tolerance):
                 print("Detected opening")
                 # Distance will have to be determined through testing
