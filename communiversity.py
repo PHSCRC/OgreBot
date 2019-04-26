@@ -7,6 +7,8 @@ from sensor_msgs.msg import LaserScan
 from std_msgs.msg import *
 import smbus
 
+distances = None
+detectOpening = []
 turn = None
 drive = None
 angle_increment = None
@@ -28,12 +30,13 @@ def setup():
 def run() :
     global distances
 
-    forwardSpeed = 0.05
+    forwardSpeed = 0.25
     turns = 0
-
+    while not distances:
+        pass
     while True :
+ #       print(distances[90])
         if (distances[90] < 0.3 and distances[90] != 1000) :
-
             turns += 1
 
             if (turns == 6) :
@@ -59,9 +62,9 @@ def run() :
 
 def scanHandler(scan):
     global distances, detectOpening, angle_increment, acceptTime
-    if rospy.get_time()-scan.header.stamp.secs < acceptTime and soundStart:
+    if rospy.get_time()-scan.header.stamp.secs < acceptTime:
         distances = scan.ranges
-        print("scanhandler")
+        #print("scanhandler")
         d = []
         newDist = 0
         for dist in range(len(distances)) :
@@ -71,7 +74,8 @@ def scanHandler(scan):
 
             else :
                 d.append(1000)
-
+        
+        #print(d[90])
         distances = d
         angle_increment = scan.angle_increment
 
@@ -103,6 +107,7 @@ def turnRightDegrees(degrees):
 
 #SPEED IS IN M/S
 def moveForward(speed):
+    print(speed)
     global vel
     msg = Twist()
     msg.linear = Vector3(speed, 0, 0)

@@ -7,7 +7,6 @@ import math
 
 import rospy
 from geometry_msgs.msg import Twist
-from ogrebot.msg import robot_vels
 from std_msgs.msg import *
 
 ROBOT_RADIUS = .097 #in meteres
@@ -21,9 +20,18 @@ targetPos=0
 speed=0
 
 def callback(cmd_vel):
-    global my_drive, vels
+    global my_drive, vels, targetPos, isInPositionMode, speed
 #    print("linearx", cmd_vel.linear.x)
 #    print("angularz", cmd_vel.angular.z)
+    print(isInPositionMode)
+    if(abs(targetPos-my_drive.axis0.encoder.pos_estimate)<100):
+        print("done")
+        my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
+        my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
+        my_drive.axis0.controller.config.vel_limit = speed
+        my_drive.axis1.controller.config.vel_limit = speed
+        targetPos = 0
+        isInPositionMode = False
     linear = (cmd_vel.linear.x * ENCODER_COUNTS_PER_RADIAN)/ WHEEL_RADIUS
     angular = cmd_vel.angular.z * (ROBOT_RADIUS/WHEEL_RADIUS) * ENCODER_COUNTS_PER_RADIAN
     leftMotorSpeed = linear + angular #Get linear speed of each wheel in m/s
@@ -78,26 +86,6 @@ def drive(distance):
     my_drive.axis0.controller.pos_setpoint = my_drive.axis0.encoder.pos_estimate - countsToMove
     my_drive.axis1.controller.pos_setpoint = my_drive.axis1.encoder.pos_estimate +  countsToMove
 
-def poll(event):
-    global my_drive, isInPositionMode, targetPos, vels, speed
-    if isInPositionMode:
-        print(abs(targetPos-my_drive.axis0.encoder.pos_estimate))
-        if(abs(targetPos-my_drive.axis0.encoder.pos_estimate)<100):
-            my_drive.axis0.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-            my_drive.axis1.controller.config.control_mode = CTRL_MODE_VELOCITY_CONTROL
-            my_drive.axis0.controller.config.vel_limit = speed
-            my_drive.axis1.controller.config.vel_limit = speed
-            isInPositionMode=False
-            targetPos=0
-    leftReading = my_drive.axis0.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
-    rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
-    msg = robot_vels()
-    msg.left_vel = leftReading
-    msg.right_vel = rightReading
-    msg.POLL_TIME = .01
-    msg.ROBOT_RADIUS = ROBOT_RADIUS
-    vels.publish(msg)
-
 def listener():
     global my_drive, vels
    # print("looking for odrive")
@@ -120,8 +108,6 @@ def listener():
     # run simultaneously.
     rospy.init_node('listener', anonymous=False)
     rospy.Subscriber("/cmd_vel", Twist, callback)
-    vels = rospy.Publisher('wheel_vels', robot_vels, queue_size=10)
-    rospy.Timer(rospy.Duration(POLL_TIME), poll, oneshot=False)
     rospy.Subscriber("/turn", Float64, turn)
     rospy.Subscriber("/turnslow", Float64, turnslow)
     rospy.Subscriber("/drive", Float64, drive)
