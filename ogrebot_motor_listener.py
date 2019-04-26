@@ -7,7 +7,6 @@ import math
 
 import rospy
 from geometry_msgs.msg import Twist
-from ogrebot.msg import robot_vels
 from std_msgs.msg import *
 
 ROBOT_RADIUS = .097 #in meteres
@@ -91,12 +90,6 @@ def poll(event):
             targetPos=0
     leftReading = my_drive.axis0.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
     rightReading = my_drive.axis1.encoder.vel_estimate/ENCODER_COUNTS_PER_RADIAN
-    msg = robot_vels()
-    msg.left_vel = leftReading
-    msg.right_vel = rightReading
-    msg.POLL_TIME = .01
-    msg.ROBOT_RADIUS = ROBOT_RADIUS
-    vels.publish(msg)
 
 def listener():
     global my_drive, vels
@@ -120,7 +113,6 @@ def listener():
     # run simultaneously.
     rospy.init_node('listener', anonymous=False)
     rospy.Subscriber("/cmd_vel", Twist, callback)
-    vels = rospy.Publisher('wheel_vels', robot_vels, queue_size=10)
     rospy.Timer(rospy.Duration(POLL_TIME), poll, oneshot=False)
     rospy.Subscriber("/turn", Float64, turn)
     rospy.Subscriber("/turnslow", Float64, turnslow)
